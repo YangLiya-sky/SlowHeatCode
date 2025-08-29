@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Box, Typography, Container, Avatar, Chip, LinearProgress } from '@mui/material';
-import { School, Work, Code, Favorite, Timeline, EmojiEvents } from '@mui/icons-material';
+import { Work, Code, Favorite, Timeline, EmojiEvents } from '@mui/icons-material';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { Navbar } from '@/components/layout/Navbar';
@@ -49,7 +49,7 @@ export default function AboutPage() {
   return (
     <Box className="min-h-screen">
       <Navbar />
-      
+
       {/* Hero Section */}
       <Box className="relative py-20 px-4 lg:px-8">
         <Container maxWidth="lg">

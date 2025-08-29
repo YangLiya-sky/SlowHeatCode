@@ -1,11 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 禁用开发工具面板和指示器
-  devIndicators: {
-    appIsrStatus: false,
-    buildActivity: false,
-  },
+  // 开发工具面板配置（已移除废弃选项）
 
   // 启用实验性功能
   experimental: {

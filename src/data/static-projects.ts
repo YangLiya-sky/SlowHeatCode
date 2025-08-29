@@ -3,7 +3,7 @@ export const staticProjects = [
     id: "1",
     title: "玻璃拟态设计：当界面开始呼吸半透明之美",
     slug: "glassmorphism-design-system",
-    description: "从 MacOS Big Sur 到 Windows 11，再到 Figma、GitHub 上的开源项目，玻璃拟态（Glassmorphism）正在悄悄刷新我们对"轻盈 UI"的定义。本文将带你拆解其美学基因、实现套路及落地经验，并给出可复制的代码片段与避坑清单。",
+    description: "从 MacOS Big Sur 到 Windows 11，再到 Figma、GitHub 上的开源项目，玻璃拟态（Glassmorphism）正在悄悄刷新我们对轻盈 UI 的定义。本文将带你拆解其美学基因、实现套路及落地经验，并给出可复制的代码片段与避坑清单。",
     content: `# 玻璃拟态设计系统
 
 ## 项目概述
@@ -44,7 +44,7 @@ export const staticProjects = [
     authorId: "1"
   },
   {
-    id: "2", 
+    id: "2",
     title: "AI驱动的代码生成工具",
     slug: "ai-code-generator",
     description: "基于大语言模型的智能代码生成工具，支持多种编程语言和框架，提供代码补全、重构建议和最佳实践指导。",
