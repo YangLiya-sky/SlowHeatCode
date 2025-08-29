@@ -5,14 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:static": "cp next.config.static.ts next.config.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:seed": "tsx scripts/seed.ts",
-    "db:studio": "prisma studio",
-    "export": "next export",
-    "deploy:github": "npm run build:static && touch out/.nojekyll"
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
