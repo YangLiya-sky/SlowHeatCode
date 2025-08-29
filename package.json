@@ -17,7 +17,6 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.1",
     "@mui/material": "^7.3.1",
-    "@next/swc-win32-x64-msvc": "^15.5.2",
     "@prisma/client": "^6.15.0",
     "@uiw/react-md-editor": "^4.0.8",
     "bcryptjs": "^3.0.2",
