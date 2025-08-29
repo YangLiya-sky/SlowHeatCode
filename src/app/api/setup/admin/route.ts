@@ -70,7 +70,6 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         name: username,
         role: 'ADMIN',
-        emailVerified: new Date(),
       }
     });
 

@@ -75,7 +75,7 @@ export function MarkdownFileUpload({ onFileContent, disabled = false }: Markdown
 
       // 简单验证是否为有效的文本内容
       if (typeof content !== 'string') {
-        throw new Error('文件内容格式不正确');
+        throw new (Error as any)('文件内容格式不正确');
       }
 
       // 提取文件名（不含扩展名）作为可能的标题
@@ -94,7 +94,7 @@ export function MarkdownFileUpload({ onFileContent, disabled = false }: Markdown
     } catch (error) {
       console.error('File upload error:', error);
       setUploadStatus('error');
-      setUploadMessage(error instanceof Error ? error.message : '文件读取失败');
+      setUploadMessage((error as any)?.message || String(error) || '文件读取失败');
     } finally {
       setUploading(false);
     }
@@ -115,12 +115,12 @@ export function MarkdownFileUpload({ onFileContent, disabled = false }: Markdown
         if (typeof content === 'string') {
           resolve(content);
         } else {
-          reject(new Error('文件读取结果格式错误'));
+          reject(new (Error as any)('文件读取结果格式错误'));
         }
       };
 
       reader.onerror = () => {
-        reject(new Error('文件读取失败'));
+        reject(new (Error as any)('文件读取失败'));
       };
 
       // 使用 UTF-8 编码读取文本文件

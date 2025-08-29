@@ -246,10 +246,10 @@ export default function BlogPage() {
             </Typography>
             <Box className="flex flex-wrap gap-2">
               {categories.map((category) => {
-                const categoryName = typeof category === 'object' ? category.name : category;
+                const categoryName = category;
                 return (
                   <Chip
-                    key={typeof category === 'object' ? category.id : category}
+                    key={category}
                     label={categoryName}
                     onClick={() => handleCategoryFilter(categoryName)}
                     className={`cursor-pointer transition-all duration-300 ${selectedCategory === categoryName

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, PostStatus, CommentStatus } from '@prisma/client';
 import { hashPassword } from '../src/lib/auth';
 
 const prisma = new PrismaClient();
@@ -129,7 +129,7 @@ async function main() {
 ## 设计原则
 
 玻璃拟态设计依赖于清晰的层次结构和适当的对比度，确保在美观的同时保持良好的可用性。`,
-      status: 'PUBLISHED',
+      status: PostStatus.PUBLISHED,
       featured: true,
       categoryId: createdCategories.find(c => c.slug === 'design')?.id,
       tagSlugs: ['css', 'react'],
@@ -182,7 +182,7 @@ function Checkbox() {
 \`\`\`
 
 这些新特性让 React 应用更加高效和用户友好。`,
-      status: 'PUBLISHED',
+      status: PostStatus.PUBLISHED,
       featured: true,
       categoryId: createdCategories.find(c => c.slug === 'frontend')?.id,
       tagSlugs: ['react', 'javascript'],
@@ -263,7 +263,7 @@ type Theme = typeof themes[number]; // 'light' | 'dark'
 \`\`\`
 
 这些实践能帮助你构建更健壮、可维护的 TypeScript 应用。`,
-      status: 'PUBLISHED',
+      status: PostStatus.PUBLISHED,
       featured: false,
       categoryId: createdCategories.find(c => c.slug === 'frontend')?.id,
       tagSlugs: ['typescript', 'javascript'],
@@ -352,7 +352,7 @@ export async function getStaticProps() {
 \`\`\`
 
 通过这些优化策略，你的 Next.js 应用将获得更好的性能表现。`,
-      status: 'PUBLISHED',
+      status: PostStatus.PUBLISHED,
       featured: false,
       categoryId: createdCategories.find(c => c.slug === 'frontend')?.id,
       tagSlugs: ['nextjs', 'react'],
@@ -399,21 +399,21 @@ export async function getStaticProps() {
   const comments = [
     {
       content: '这篇文章写得很好，学到了很多！',
-      status: 'APPROVED',
+      status: CommentStatus.APPROVED,
       guestName: '张三',
       guestEmail: 'zhangsan@example.com',
       postId: '', // 将在下面设置
     },
     {
       content: '能否详细介绍一下并发特性的实现原理？',
-      status: 'PENDING',
+      status: CommentStatus.PENDING,
       guestName: '李四',
       guestEmail: 'lisi@example.com',
       postId: '', // 将在下面设置
     },
     {
       content: '代码示例很清晰，感谢分享！',
-      status: 'APPROVED',
+      status: CommentStatus.APPROVED,
       guestName: '王五',
       guestEmail: 'wangwu@example.com',
       postId: '', // 将在下面设置

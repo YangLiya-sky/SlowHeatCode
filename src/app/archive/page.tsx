@@ -330,18 +330,18 @@ export default function ArchivePage() {
           {viewMode === 'category' && (
             <Box className="space-y-8">
               {categories.map(category => (
-                <GlassCard key={typeof category === 'object' ? category.id : category} className="p-8">
+                <GlassCard key={category} className="p-8">
                   <Box className="flex items-center justify-between mb-6">
                     <Typography variant="h4" className="text-white font-bold">
-                      {typeof category === 'object' ? category.name : category}
+                      {category}
                     </Typography>
                     <Chip
-                      label={`${postsByCategory[typeof category === 'object' ? category.name : category]?.length || 0} 篇文章`}
+                      label={`${postsByCategory[category]?.length || 0} 篇文章`}
                       className="bg-gradient-to-r from-indigo-500 to-pink-500 text-white border-0"
                     />
                   </Box>
                   <Box className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {postsByCategory[typeof category === 'object' ? category.name : category]?.map(post => (
+                    {postsByCategory[category]?.map(post => (
                       <Link key={post.id} href={`/blog/${post.id}`}>
                         <Box className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer h-full">
                           <Typography variant="h6" className="text-white font-semibold mb-2">
@@ -381,18 +381,18 @@ export default function ArchivePage() {
           {viewMode === 'tags' && (
             <Box className="space-y-8">
               {allTags.map(tag => (
-                <GlassCard key={typeof tag === 'object' ? tag.id : tag} className="p-8">
+                <GlassCard key={tag} className="p-8">
                   <Box className="flex items-center justify-between mb-6">
                     <Typography variant="h4" className="text-white font-bold">
-                      #{typeof tag === 'object' ? tag.name : tag}
+                      #{tag}
                     </Typography>
                     <Chip
-                      label={`${postsByTag[typeof tag === 'object' ? tag.name : tag]?.length || 0} 篇文章`}
+                      label={`${postsByTag[tag]?.length || 0} 篇文章`}
                       className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0"
                     />
                   </Box>
                   <Box className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {postsByTag[typeof tag === 'object' ? tag.name : tag]?.map(post => (
+                    {postsByTag[tag]?.map(post => (
                       <Link key={post.id} href={`/blog/${post.id}`}>
                         <Box className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer">
                           <Typography variant="h6" className="text-white font-semibold mb-2">

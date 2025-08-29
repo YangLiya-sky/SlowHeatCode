@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import * as React from 'react';
 
 // 数据同步管理器
 class DataSyncManager {

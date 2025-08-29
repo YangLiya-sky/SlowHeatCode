@@ -172,8 +172,10 @@ export default function AdminPage() {
     try {
       setLoadingData(true);
       await refreshPosts();
-      if (syncedPosts?.posts) {
-        setPosts(syncedPosts.posts);
+      if (syncedPosts && Array.isArray(syncedPosts)) {
+        setPosts(syncedPosts);
+      } else if (syncedPosts && typeof syncedPosts === 'object' && 'posts' in syncedPosts) {
+        setPosts((syncedPosts as any).posts);
       }
     } catch (error) {
       console.error('Load posts error:', error);
@@ -186,8 +188,10 @@ export default function AdminPage() {
     try {
       setLoadingData(true);
       await refreshProjects();
-      if (syncedProjects?.projects) {
-        setProjects(syncedProjects.projects);
+      if (syncedProjects && Array.isArray(syncedProjects)) {
+        setProjects(syncedProjects);
+      } else if (syncedProjects && typeof syncedProjects === 'object' && 'projects' in syncedProjects) {
+        setProjects((syncedProjects as any).projects);
       }
     } catch (error) {
       console.error('Load projects error:', error);
@@ -214,8 +218,10 @@ export default function AdminPage() {
   const loadCategories = async () => {
     try {
       await refreshCategories();
-      if (syncedCategories?.categories) {
-        setCategories(syncedCategories.categories);
+      if (syncedCategories && Array.isArray(syncedCategories)) {
+        setCategories(syncedCategories);
+      } else if (syncedCategories && typeof syncedCategories === 'object' && 'categories' in syncedCategories) {
+        setCategories((syncedCategories as any).categories);
       }
     } catch (error) {
       console.error('Load categories error:', error);
@@ -225,8 +231,10 @@ export default function AdminPage() {
   const loadTags = async () => {
     try {
       await refreshTags();
-      if (syncedTags?.tags) {
-        setTags(syncedTags.tags);
+      if (syncedTags && Array.isArray(syncedTags)) {
+        setTags(syncedTags);
+      } else if (syncedTags && typeof syncedTags === 'object' && 'tags' in syncedTags) {
+        setTags((syncedTags as any).tags);
       }
     } catch (error) {
       console.error('Load tags error:', error);
@@ -236,8 +244,10 @@ export default function AdminPage() {
   const loadComments = async () => {
     try {
       await refreshComments();
-      if (syncedComments?.comments) {
-        setComments(syncedComments.comments);
+      if (syncedComments && Array.isArray(syncedComments)) {
+        setComments(syncedComments);
+      } else if (syncedComments && typeof syncedComments === 'object' && 'comments' in syncedComments) {
+        setComments((syncedComments as any).comments);
       }
     } catch (error) {
       console.error('Load comments error:', error);
@@ -247,8 +257,10 @@ export default function AdminPage() {
   const loadMedia = async () => {
     try {
       await refreshMedia();
-      if (syncedMedia?.media) {
-        setMedia(syncedMedia.media);
+      if (syncedMedia && Array.isArray(syncedMedia)) {
+        setMedia(syncedMedia);
+      } else if (syncedMedia && typeof syncedMedia === 'object' && 'media' in syncedMedia) {
+        setMedia((syncedMedia as any).media);
       }
     } catch (error) {
       console.error('Load media error:', error);
@@ -258,8 +270,10 @@ export default function AdminPage() {
   const loadUsers = async () => {
     try {
       await refreshUsers();
-      if (syncedUsers?.users) {
-        setUsers(syncedUsers.users);
+      if (syncedUsers && Array.isArray(syncedUsers)) {
+        setUsers(syncedUsers);
+      } else if (syncedUsers && typeof syncedUsers === 'object' && 'users' in syncedUsers) {
+        setUsers((syncedUsers as any).users);
       }
     } catch (error) {
       console.error('Load users error:', error);
@@ -487,6 +501,7 @@ export default function AdminPage() {
       description: project.description,
       content: project.content || '',
       technologies: project.technologies || '',
+      category: project.category || '',
       githubUrl: project.githubUrl || '',
       liveUrl: project.liveUrl || '',
       status: project.status,
@@ -1753,7 +1768,7 @@ export default function AdminPage() {
                         fullWidth
                         label="网站标题"
                         value={settings.site_title || ''}
-                        onChange={(e) => setSettings(prev => ({ ...prev, site_title: e.target.value }))}
+                        onChange={(e) => setSettings((prev: any) => ({ ...prev, site_title: e.target.value }))}
                         variant="outlined"
                         InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
                         InputProps={{ style: { color: 'white' } }}
@@ -1771,7 +1786,7 @@ export default function AdminPage() {
                         fullWidth
                         label="网站副标题"
                         value={settings.site_subtitle || ''}
-                        onChange={(e) => setSettings(prev => ({ ...prev, site_subtitle: e.target.value }))}
+                        onChange={(e) => setSettings((prev: any) => ({ ...prev, site_subtitle: e.target.value }))}
                         variant="outlined"
                         InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
                         InputProps={{ style: { color: 'white' } }}
@@ -1792,7 +1807,7 @@ export default function AdminPage() {
                       multiline
                       rows={3}
                       value={settings.site_description || ''}
-                      onChange={(e) => setSettings(prev => ({ ...prev, site_description: e.target.value }))}
+                      onChange={(e) => setSettings((prev: any) => ({ ...prev, site_description: e.target.value }))}
                       variant="outlined"
                       InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
                       InputProps={{ style: { color: 'white' } }}
@@ -1811,7 +1826,7 @@ export default function AdminPage() {
                         fullWidth
                         label="联系邮箱"
                         value={settings.contact_email || ''}
-                        onChange={(e) => setSettings(prev => ({ ...prev, contact_email: e.target.value }))}
+                        onChange={(e) => setSettings((prev: any) => ({ ...prev, contact_email: e.target.value }))}
                         variant="outlined"
                         InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
                         InputProps={{ style: { color: 'white' } }}
@@ -1829,7 +1844,7 @@ export default function AdminPage() {
                         fullWidth
                         label="GitHub 链接"
                         value={settings.github_url || ''}
-                        onChange={(e) => setSettings(prev => ({ ...prev, github_url: e.target.value }))}
+                        onChange={(e) => setSettings((prev: any) => ({ ...prev, github_url: e.target.value }))}
                         variant="outlined"
                         InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
                         InputProps={{ style: { color: 'white' } }}

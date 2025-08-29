@@ -6,7 +6,15 @@ import { verifyToken, hashPassword } from '@/lib/auth';
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('auth-token')?.value;
-    const user = verifyToken(token);
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
+    const user = await verifyToken(token);
 
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
@@ -52,7 +60,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('auth-token')?.value;
-    const currentUser = verifyToken(token);
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
+    const currentUser = await verifyToken(token);
 
     if (!currentUser || currentUser.role !== 'ADMIN') {
       return NextResponse.json(

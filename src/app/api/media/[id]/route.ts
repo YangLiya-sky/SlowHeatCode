@@ -8,12 +8,19 @@ import { existsSync } from 'fs';
 // DELETE /api/media/[id] - 删除媒体文件
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
     const user = await verifyToken(token);
-    
+
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, error: '权限不足' },
@@ -21,9 +28,11 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
+
     // 获取媒体文件信息
     const media = await prisma.media.findUnique({
-      where: { id: params.id }
+      where: { id }
     });
 
     if (!media) {
@@ -35,7 +44,7 @@ export async function DELETE(
 
     // 检查是否有文章使用此媒体文件
     const postMediaCount = await prisma.postMedia.count({
-      where: { mediaId: params.id }
+      where: { mediaId: id }
     });
 
     if (postMediaCount > 0) {
@@ -53,7 +62,7 @@ export async function DELETE(
 
     // 从数据库删除记录
     await prisma.media.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({
@@ -72,12 +81,19 @@ export async function DELETE(
 // PUT /api/media/[id] - 更新媒体文件信息
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
     const user = await verifyToken(token);
-    
+
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, error: '权限不足' },
@@ -85,10 +101,11 @@ export async function PUT(
       );
     }
 
+    const { id } = await params;
     const { alt } = await request.json();
 
     const media = await prisma.media.update({
-      where: { id: params.id },
+      where: { id },
       data: { alt }
     });
 

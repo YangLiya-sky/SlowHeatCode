@@ -10,6 +10,14 @@ export async function PUT(
   try {
     const { id } = await params;
     const token = request.cookies.get('auth-token')?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
     const user = await verifyToken(token);
 
     if (!user || user.role !== 'ADMIN') {
@@ -65,6 +73,14 @@ export async function DELETE(
   try {
     const { id } = await params;
     const token = request.cookies.get('auth-token')?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
     const user = await verifyToken(token);
 
     if (!user || user.role !== 'ADMIN') {

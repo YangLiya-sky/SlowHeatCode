@@ -14,7 +14,7 @@ import Link from 'next/link';
 export default function StaticHomePage() {
   // 获取最新的3篇文章
   const latestPosts = staticPosts.slice(0, 3);
-  
+
   // 获取精选项目
   const featuredProjects = staticProjects.filter(project => project.featured).slice(0, 2);
 
@@ -26,7 +26,7 @@ export default function StaticHomePage() {
       <Box className="relative py-20 px-4 lg:px-8">
         <Container maxWidth="lg">
           <Grid container spacing={8} alignItems="center">
-            <Grid item xs={12} md={8}>
+            <Grid item xs={12} md={8} {...({} as any)}>
               <Typography variant="h1" className="text-white font-bold mb-6 text-4xl lg:text-6xl">
                 你好，我是{' '}
                 <Box component="span" className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
@@ -44,8 +44,8 @@ export default function StaticHomePage() {
                     查看博客
                   </GlassButton>
                 </Link>
-                <GlassButton 
-                  glassVariant="secondary" 
+                <GlassButton
+                  glassVariant="secondary"
                   className="flex items-center gap-2"
                   component="a"
                   href="https://github.com/YangLiya-sky"
@@ -57,7 +57,7 @@ export default function StaticHomePage() {
                 </GlassButton>
               </Box>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={4} {...({} as any)}>
               <GlassCard className="p-8 text-center">
                 <Box className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white text-4xl font-bold">
                   P
@@ -98,7 +98,7 @@ export default function StaticHomePage() {
                 icon: "💻"
               },
               {
-                title: "UI/UX设计", 
+                title: "UI/UX设计",
                 description: "注重用户体验，擅长现代化界面设计和交互设计",
                 icon: "🎨"
               },
@@ -113,7 +113,7 @@ export default function StaticHomePage() {
                 icon: "📚"
               }
             ].map((skill, index) => (
-              <Grid item xs={12} sm={6} lg={3} key={index}>
+              <Grid item xs={12} sm={6} lg={3} key={index} {...({} as any)}>
                 <GlassCard className="p-6 h-full text-center glass-hover">
                   <Box className="text-4xl mb-4">{skill.icon}</Box>
                   <Typography variant="h6" className="text-white font-semibold mb-3">
@@ -142,7 +142,7 @@ export default function StaticHomePage() {
           </Box>
           <Grid container spacing={6}>
             {latestPosts.map((post) => (
-              <Grid item xs={12} md={4} key={post.id}>
+              <Grid item xs={12} md={4} key={post.id} {...({} as any)}>
                 <Link href={`/blog/${post.slug}`} style={{ textDecoration: 'none' }}>
                   <GlassCard className="p-6 h-full glass-hover cursor-pointer">
                     <Typography variant="h6" className="text-white font-semibold mb-3 line-clamp-2">

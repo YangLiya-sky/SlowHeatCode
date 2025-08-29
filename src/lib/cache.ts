@@ -117,8 +117,8 @@ export class ApiCache {
       return data;
     } catch (error) {
       // 网络错误或JSON解析错误
-      if (error instanceof TypeError || error.message.includes('Failed to fetch')) {
-        console.warn(`Network error for ${url}:`, error.message);
+      if (error instanceof TypeError || (error instanceof Error && error.message.includes('Failed to fetch'))) {
+        console.warn(`Network error for ${url}:`, error instanceof Error ? error.message : String(error));
         return null;
       }
 

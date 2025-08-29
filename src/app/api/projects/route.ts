@@ -65,7 +65,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('auth-token')?.value;
-    const user = verifyToken(token);
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
+    const user = await verifyToken(token);
 
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(

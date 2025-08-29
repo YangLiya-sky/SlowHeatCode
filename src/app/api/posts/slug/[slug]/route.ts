@@ -4,17 +4,24 @@ import { prisma } from '@/lib/prisma';
 // 通过 slug 获取文章
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
+
     const post = await prisma.post.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         author: {
           select: {
             id: true,
             username: true,
             name: true,
+          },
+        },
+        tags: {
+          include: {
+            tag: true,
           },
         },
       },
@@ -29,14 +36,14 @@ export async function GET(
 
     // 增加浏览量
     await prisma.post.update({
-      where: { slug: params.slug },
+      where: { slug },
       data: { views: { increment: 1 } },
     });
 
     return NextResponse.json({
       post: {
         ...post,
-        tags: post.tags ? JSON.parse(post.tags) : [],
+        tags: post.tags.map(pt => pt.tag),
       },
     });
   } catch (error) {

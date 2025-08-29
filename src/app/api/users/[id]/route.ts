@@ -10,7 +10,15 @@ export async function PUT(
   try {
     const { id } = await params;
     const token = request.cookies.get('auth-token')?.value;
-    const currentUser = verifyToken(token);
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
+    const currentUser = await verifyToken(token);
 
     if (!currentUser || currentUser.role !== 'ADMIN') {
       return NextResponse.json(
@@ -98,7 +106,15 @@ export async function DELETE(
   try {
     const { id } = await params;
     const token = request.cookies.get('auth-token')?.value;
-    const currentUser = verifyToken(token);
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
+    const currentUser = await verifyToken(token);
 
     if (!currentUser || currentUser.role !== 'ADMIN') {
       return NextResponse.json(

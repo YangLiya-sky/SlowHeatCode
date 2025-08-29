@@ -69,7 +69,6 @@ export function MarkdownEditor({
         value={value}
         onChange={(val) => onChange(val || '')}
         height={height}
-        placeholder={placeholder}
         data-color-mode="dark"
         style={{
           backgroundColor: 'rgba(255, 255, 255, 0.05)',

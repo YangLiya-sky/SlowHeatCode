@@ -9,7 +9,7 @@ export async function GET() {
 
     // 转换为键值对格式
     const settingsMap = settings.reduce((acc, setting) => {
-      let value = setting.value;
+      let value: any = setting.value;
 
       // 根据类型转换值
       switch (setting.type) {
@@ -51,6 +51,14 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const token = request.cookies.get('auth-token')?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
     const user = await verifyToken(token);
 
     if (!user || user.role !== 'ADMIN') {
@@ -107,6 +115,14 @@ export async function PUT(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: '未提供认证令牌' },
+        { status: 401 }
+      );
+    }
+
     const user = await verifyToken(token);
 
     if (!user || user.role !== 'ADMIN') {

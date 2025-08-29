@@ -40,7 +40,7 @@ export function ProductionSyncMonitor() {
         status: 'unhealthy',
         database: 'error',
         timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: (error as any)?.message || String(error) || 'Unknown error'
       });
     } finally {
       setLoading(false);
@@ -57,8 +57,8 @@ export function ProductionSyncMonitor() {
   const getStatusIcon = () => {
     if (loading) return <Refresh className="animate-spin" />;
     if (!health) return <Warning color="warning" />;
-    return health.status === 'healthy' ? 
-      <CheckCircle color="success" /> : 
+    return health.status === 'healthy' ?
+      <CheckCircle color="success" /> :
       <Error color="error" />;
   };
 
@@ -73,13 +73,13 @@ export function ProductionSyncMonitor() {
 
   return (
     <Box className="fixed bottom-4 right-4 z-50">
-      <Alert 
+      <Alert
         severity={getStatusColor()}
         icon={getStatusIcon()}
         action={
-          <Button 
-            color="inherit" 
-            size="small" 
+          <Button
+            color="inherit"
+            size="small"
             onClick={checkSystemHealth}
             disabled={loading}
           >

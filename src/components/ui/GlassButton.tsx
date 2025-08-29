@@ -8,14 +8,16 @@ interface GlassButtonProps extends ButtonProps {
   children: React.ReactNode;
   glassVariant?: 'primary' | 'secondary' | 'ghost' | 'outline';
   blur?: 'sm' | 'md' | 'lg';
+  target?: string;
+  rel?: string;
 }
 
-export function GlassButton({ 
-  children, 
-  className, 
+export function GlassButton({
+  children,
+  className,
   glassVariant = 'primary',
   blur = 'md',
-  ...props 
+  ...props
 }: GlassButtonProps) {
   const blurClasses = {
     sm: 'backdrop-blur-sm',

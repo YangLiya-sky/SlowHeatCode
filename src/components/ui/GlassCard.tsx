@@ -4,18 +4,18 @@ import React from 'react';
 import { Card, CardProps } from '@mui/material';
 import { cn } from '@/lib/utils';
 
-interface GlassCardProps extends CardProps {
+interface GlassCardProps extends Omit<CardProps, 'variant'> {
   children: React.ReactNode;
   variant?: 'default' | 'elevated' | 'subtle';
   blur?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export function GlassCard({ 
-  children, 
-  className, 
+export function GlassCard({
+  children,
+  className,
   variant = 'default',
   blur = 'md',
-  ...props 
+  ...props
 }: GlassCardProps) {
   const blurClasses = {
     sm: 'backdrop-blur-sm',
