@@ -48,9 +48,10 @@ NEXTAUTH_URL = https://your-project-name.vercel.app
 
 #### 环境变量详细说明：
 
-**DATABASE_URL**
-- Neon示例: `postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require`
-- PlanetScale示例: `mysql://username:password@aws.connect.psdb.cloud/database-name?sslmode=require`
+**DATABASE_URL** (重要！)
+- **Neon PostgreSQL** (推荐): `postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require`
+- **PlanetScale MySQL**: `mysql://username:password@aws.connect.psdb.cloud/database-name?sslmode=require`
+- **注意**: 必须配置生产数据库，SQLite不支持Vercel部署
 
 **NEXTAUTH_SECRET**
 - 生成方法: `openssl rand -base64 32`

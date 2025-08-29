@@ -1,0 +1,12 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "prisma generate && npm run build",
+  "installCommand": "npm install && prisma generate",
+  "regions": ["hkg1"],
+  "rewrites": [
+    {
+      "source": "/uploads/(.*)",
+      "destination": "/api/media/$1"
+    }
+  ]
+}
