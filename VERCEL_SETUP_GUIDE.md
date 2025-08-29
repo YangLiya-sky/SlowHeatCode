@@ -1,34 +1,41 @@
-# Vercel Setup页面修复指南
+# Vercel Setup页面修复指南 ✅ 已修复
 
-## 🚨 当前问题
+## 🎉 问题已解决！
 
-如果您看到错误：`the URL must start with the protocol 'prisma://' or 'prisma+postgres://'`
+Setup页面错误已经完全修复！现在使用标准的PostgreSQL连接，兼容性更好。
 
-这是因为Prisma Accelerate需要特定的URL格式。
+## ✅ 当前配置（推荐）
 
-## 🔧 解决方案
-
-### 方案1：使用Prisma Accelerate（推荐）
-
-在Vercel环境变量中设置：
-```
-DATABASE_URL = prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19KME5YT001VWJTNHFPY1N0T1dyLU8iLCJhcGlfa2V5IjoiMDFLM1Y0WUgzRVlKQlRaOE1SWVhERjhTNFAiLCJ0ZW5hbnRfaWQiOiJhZmYyZjFjN2RkNjQyZjVjMTRmYTUzZTg5ZDE2ODFhNjIyOTIxMTllNmJlNzZmYTNkOTYxODcwZjU2YTk3MWNkIiwiaW50ZXJuYWxfc2VjcmV0IjoiMmJkZDA2NWEtMjNjMy00MDhjLWI2MTAtYmI1YWY0NTBjZDVkIn0.yF4sCx7hO_SGsIXNhHpBPjcfx5D8dY1V8PhazGzQz3Q
-```
-
-**注意**：Accelerate需要5-10分钟同步新创建的表。如果setup页面显示"表不存在"错误，这是正常的。
-
-### 方案2：临时使用直接连接
-
-如果急需使用setup功能，可以临时切换：
-
-1. 在Vercel环境变量中修改：
+### Vercel环境变量设置：
 ```
 DATABASE_URL = $STORAGE_POSTGRES_PRISMA_URL
+DIRECT_URL = $STORAGE_POSTGRES_URL_NON_POOLING
+NEXTAUTH_SECRET = sqd1Ui+YJKMq0KTD5ws478KUi+04XRe70MRAwKmVR9s=
+NEXTAUTH_URL = https://slow-heat-code.vercel.app
+SETUP_KEY = admin-setup-2025
+NODE_ENV = production
+NEXT_TELEMETRY_DISABLED = 1
 ```
 
-2. 重新部署项目
+### 为什么这样配置？
+- ✅ **稳定性**：使用Vercel官方推荐的环境变量
+- ✅ **兼容性**：标准PostgreSQL协议，无需特殊配置
+- ✅ **即时可用**：无需等待Accelerate同步
+- ✅ **性能优化**：Vercel自动提供连接池优化
 
-3. 完成管理员设置后，再切换回Accelerate
+## 🚀 可选：Prisma Accelerate
+
+如果您想要额外的性能优化，可以启用Accelerate：
+
+1. **添加环境变量**：
+```
+DATABASE_URL = prisma+postgres://accelerate.prisma-data.net/?api_key=YOUR_API_KEY
+```
+
+2. **更新构建命令**：
+```bash
+npm run build:accelerate
+```
 
 ## 📋 完整环境变量配置
 
