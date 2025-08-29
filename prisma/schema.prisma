@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,18 +8,16 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  username  String   @unique
+  id        String    @id @default(cuid())
+  email     String    @unique
+  username  String    @unique
   password  String
   name      String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  posts     Post[]
+  role      Role      @default(USER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   comments  Comment[]
+  posts     Post[]
   projects  Project[]
 
   @@map("users")
@@ -44,17 +36,13 @@ model Post {
   publishedAt DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-
-  // Relations
   authorId    String
-  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
   categoryId  String?
-  category    Category?   @relation(fields: [categoryId], references: [id])
-
-  tags        PostTag[]
   comments    Comment[]
   media       PostMedia[]
+  tags        PostTag[]
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category    Category?   @relation(fields: [categoryId], references: [id])
 
   @@map("posts")
 }
@@ -66,21 +54,17 @@ model Category {
   slug        String   @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  // Relations
   posts       Post[]
 
   @@map("categories")
 }
 
 model Tag {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   posts     PostTag[]
 
   @@map("tags")
@@ -90,52 +74,43 @@ model PostTag {
   id     String @id @default(cuid())
   postId String
   tagId  String
-
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([postId, tagId])
   @@map("post_tags")
 }
 
 model Comment {
-  id        String        @id @default(cuid())
-  content   String
-  status    CommentStatus @default(PENDING)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  // Relations
-  postId   String
-  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  authorId String?
-  author   User?  @relation(fields: [authorId], references: [id])
-
-  // Guest comment fields
+  id         String        @id @default(cuid())
+  content    String
+  status     CommentStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  postId     String
+  authorId   String?
   guestName  String?
   guestEmail String?
-
-  parentId String?
-  parent   Comment? @relation("CommentReplies", fields: [parentId], references: [id])
-  replies  Comment[] @relation("CommentReplies")
+  parentId   String?
+  author     User?         @relation(fields: [authorId], references: [id])
+  parent     Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
+  replies    Comment[]     @relation("CommentReplies")
+  post       Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("comments")
 }
 
 model Media {
-  id        String    @id @default(cuid())
-  filename  String
+  id           String      @id @default(cuid())
+  filename     String
   originalName String
-  mimeType  String
-  size      Int
-  url       String
-  alt       String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  // Relations
-  posts     PostMedia[]
+  mimeType     String
+  size         Int
+  url          String
+  alt          String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  posts        PostMedia[]
 
   @@map("media")
 }
@@ -144,24 +119,45 @@ model PostMedia {
   id      String @id @default(cuid())
   postId  String
   mediaId String
-
-  post    Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
-  media   Media @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  media   Media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([postId, mediaId])
   @@map("post_media")
 }
 
 model Setting {
-  id    String @id @default(cuid())
-  key   String @unique
-  value String
-  type  String @default("string") // string, number, boolean, json
-
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("settings")
+}
+
+model Project {
+  id           String        @id @default(cuid())
+  title        String
+  slug         String        @unique
+  description  String
+  content      String?
+  technologies String?
+  category     String?
+  githubUrl    String?
+  liveUrl      String?
+  status       ProjectStatus @default(DRAFT)
+  featured     Boolean       @default(false)
+  views        Int           @default(0)
+  startDate    DateTime?
+  endDate      DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  authorId     String
+  author       User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("projects")
 }
 
 enum Role {
@@ -179,31 +175,6 @@ enum CommentStatus {
   PENDING
   APPROVED
   REJECTED
-}
-
-model Project {
-  id           String        @id @default(cuid())
-  title        String
-  slug         String        @unique
-  description  String
-  content      String?
-  technologies String?       // 技术栈，逗号分隔
-  category     String?       // 项目分类
-  githubUrl    String?
-  liveUrl      String?
-  status       ProjectStatus @default(DRAFT)
-  featured     Boolean       @default(false)
-  views        Int           @default(0)
-  startDate    DateTime?
-  endDate      DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  // Relations
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId String
-
-  @@map("projects")
 }
 
 enum ProjectStatus {
