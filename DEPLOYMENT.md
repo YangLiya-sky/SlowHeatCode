@@ -85,10 +85,33 @@ NEXTAUTH_URL = https://your-project-name.vercel.app
 - 在Vercel项目设置中添加自定义域名
 - 更新 `NEXTAUTH_URL` 环境变量
 
-### 2. 数据初始化
-访问以下URL来初始化示例数据：
-- `https://your-domain.vercel.app/api/posts` - 检查API是否正常
-- 使用管理面板创建第一个用户和内容
+### 2. 创建管理员账户
+部署成功后，需要创建管理员账户：
+
+**方法一：使用设置页面（推荐）**
+1. 访问 `https://your-domain.vercel.app/setup`
+2. 填写管理员信息：
+   - 邮箱地址
+   - 用户名
+   - 密码（至少6位）
+   - 设置密钥：`admin-setup-2025`
+3. 点击"创建管理员账户"
+
+**方法二：使用API直接创建**
+```bash
+curl -X POST https://your-domain.vercel.app/api/setup/admin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "username": "admin",
+    "password": "your-password",
+    "setupKey": "admin-setup-2025"
+  }'
+```
+
+### 3. 数据初始化
+- 访问 `https://your-domain.vercel.app/api/posts` - 检查API是否正常
+- 登录管理后台开始创建内容
 
 ## 🚨 常见问题
 
