@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 
 // GET /api/media - 获取所有媒体文件
 export async function GET() {
@@ -74,40 +71,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 创建上传目录
-    const uploadDir = join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
-    // 生成唯一文件名
-    const timestamp = Date.now();
-    const extension = file.name.split('.').pop();
-    const filename = `${timestamp}.${extension}`;
-    const filepath = join(uploadDir, filename);
-
-    // 保存文件
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
-
-    // 保存到数据库
-    const media = await prisma.media.create({
-      data: {
-        filename,
-        originalName: file.name,
-        mimeType: file.type,
-        size: file.size,
-        url: `/uploads/${filename}`,
-        alt: alt || file.name
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: '文件上传成功',
-      media
-    });
+    // Vercel无服务器环境不支持文件系统操作
+    // 建议使用云存储服务如Cloudinary、AWS S3等
+    return NextResponse.json(
+      {
+        success: false,
+        error: '文件上传功能在生产环境中需要配置云存储服务。请联系管理员配置Cloudinary或AWS S3。',
+        suggestion: '建议使用外部图片链接或配置云存储服务'
+      },
+      { status: 501 }
+    );
   } catch (error) {
     console.error('Upload media error:', error);
     return NextResponse.json(

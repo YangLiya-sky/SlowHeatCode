@@ -18,8 +18,16 @@ export async function POST(request: NextRequest) {
 
     const { email, username, password, setupKey } = await request.json();
 
-    // 简单的设置密钥验证（可以设置为环境变量）
+    // 设置密钥验证
     const expectedSetupKey = process.env.SETUP_KEY || 'admin-setup-2025';
+
+    // 在生产环境中确保设置密钥已配置
+    if (process.env.NODE_ENV === 'production' && !process.env.SETUP_KEY) {
+      return NextResponse.json(
+        { error: '生产环境未配置SETUP_KEY环境变量' },
+        { status: 500 }
+      );
+    }
     if (setupKey !== expectedSetupKey) {
       return NextResponse.json(
         { error: '设置密钥错误' },

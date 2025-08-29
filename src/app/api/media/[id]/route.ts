@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
-import { unlink } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 
 // DELETE /api/media/[id] - 删除媒体文件
 export async function DELETE(
@@ -54,20 +51,15 @@ export async function DELETE(
       );
     }
 
-    // 删除物理文件
-    const filepath = join(process.cwd(), 'public', 'uploads', media.filename);
-    if (existsSync(filepath)) {
-      await unlink(filepath);
-    }
-
-    // 从数据库删除记录
+    // 在Vercel生产环境中，只删除数据库记录
+    // 物理文件删除需要云存储服务支持
     await prisma.media.delete({
       where: { id }
     });
 
     return NextResponse.json({
       success: true,
-      message: '文件删除成功'
+      message: '文件记录删除成功（物理文件需要在云存储中手动删除）'
     });
   } catch (error) {
     console.error('Delete media error:', error);
