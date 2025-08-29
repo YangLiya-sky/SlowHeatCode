@@ -4,10 +4,17 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Setup admin request received');
+
+    // 测试数据库连接
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('Database connection successful');
+
     // 检查是否已有管理员用户
     const existingAdmin = await prisma.user.findFirst({
       where: { role: 'ADMIN' }
     });
+    console.log('Existing admin check:', existingAdmin ? 'Found' : 'None');
 
     if (existingAdmin) {
       return NextResponse.json(
@@ -17,9 +24,11 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, username, password, setupKey } = await request.json();
+    console.log('Request data received:', { email, username, hasPassword: !!password, hasSetupKey: !!setupKey });
 
     // 设置密钥验证
     const expectedSetupKey = process.env.SETUP_KEY || 'admin-setup-2025';
+    console.log('Expected setup key configured:', !!expectedSetupKey);
 
     // 在生产环境中确保设置密钥已配置
     if (process.env.NODE_ENV === 'production' && !process.env.SETUP_KEY) {
@@ -71,6 +80,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // 创建管理员用户
+    console.log('Creating admin user...');
     const admin = await prisma.user.create({
       data: {
         email,
@@ -80,6 +90,7 @@ export async function POST(request: NextRequest) {
         role: 'ADMIN',
       }
     });
+    console.log('Admin user created successfully:', admin.id);
 
     return NextResponse.json({
       success: true,

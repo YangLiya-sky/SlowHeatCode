@@ -3,10 +3,17 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
+    console.log('Setup status check requested');
+
+    // 测试数据库连接
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('Database connection successful');
+
     // 检查是否已有管理员用户
     const adminCount = await prisma.user.count({
       where: { role: 'ADMIN' }
     });
+    console.log('Admin count:', adminCount);
 
     return NextResponse.json({
       hasAdmin: adminCount > 0,
