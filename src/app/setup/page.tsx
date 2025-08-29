@@ -217,7 +217,6 @@ export default function SetupPage() {
               value={formData.setupKey}
               onChange={handleInputChange}
               required
-              helperText="请输入系统设置密钥"
               className="glass-input"
             />
 

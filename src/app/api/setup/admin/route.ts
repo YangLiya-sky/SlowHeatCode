@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    // 检查数据库连接
-    await prisma.$connect();
-
     // 检查是否已有管理员用户
     const existingAdmin = await prisma.user.findFirst({
       where: { role: 'ADMIN' }
     });
 
     if (existingAdmin) {
-      await prisma.$disconnect();
       return NextResponse.json(
         { error: '管理员账户已存在' },
         { status: 400 }
@@ -80,8 +74,6 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    await prisma.$disconnect();
-
     return NextResponse.json({
       success: true,
       message: '管理员账户创建成功',
@@ -95,7 +87,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('创建管理员账户失败:', error);
-    await prisma.$disconnect();
 
     return NextResponse.json(
       { error: `服务器错误: ${error instanceof Error ? error.message : '未知错误'}` },
