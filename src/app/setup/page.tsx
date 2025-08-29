@@ -28,14 +28,18 @@ export default function SetupPage() {
 
   const checkAdminExists = async () => {
     try {
-      const response = await fetch('/api/users');
+      const response = await fetch('/api/setup/status');
       if (response.ok) {
         const data = await response.json();
-        const adminExists = data.users?.some((user: any) => user.role === 'ADMIN');
-        setHasAdmin(adminExists);
+        setHasAdmin(data.hasAdmin);
+      } else {
+        // 如果API失败，假设还没有管理员
+        setHasAdmin(false);
       }
     } catch (error) {
       console.error('检查管理员状态失败:', error);
+      // 如果检查失败，假设还没有管理员，让用户尝试创建
+      setHasAdmin(false);
     }
   };
 
@@ -121,7 +125,7 @@ export default function SetupPage() {
             <Typography variant="body1" className="text-white/70 mb-6">
               管理员账户已存在，系统已完成初始化设置。
             </Typography>
-            <GlassButton 
+            <GlassButton
               glassVariant="primary"
               onClick={() => window.location.href = '/login'}
             >
@@ -213,7 +217,7 @@ export default function SetupPage() {
               value={formData.setupKey}
               onChange={handleInputChange}
               required
-              helperText="请输入系统设置密钥（默认：admin-setup-2025）"
+              helperText="请输入系统设置密钥"
               className="glass-input"
             />
 
