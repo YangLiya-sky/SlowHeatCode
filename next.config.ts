@@ -9,9 +9,46 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
 
+  // 编译器配置
+  compiler: {
+    // 移除console.log在生产环境
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+
   // 简化实验性功能配置
   experimental: {
     optimizePackageImports: ['@mui/material', '@mui/icons-material'],
+  },
+
+  // 构建优化配置
+  webpack: (config, { dev }) => {
+    // 优化构建性能
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          ...config.optimization.splitChunks,
+          cacheGroups: {
+            ...config.optimization.splitChunks.cacheGroups,
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+            },
+          },
+        },
+      };
+    }
+
+    // 解决SWC DLL问题的fallback配置
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
+
+    return config;
   },
 
   // 图片优化配置
