@@ -95,13 +95,28 @@ class DataSyncManager {
     }
   }
 
-  // 同步特定数据
-  async syncData(key: string) {
+  // 同步特定数据（带重试机制）
+  async syncData(key: string, retryCount = 0) {
     const endpoint = this.getEndpointForKey(key);
     if (!endpoint) return;
 
+    const maxRetries = 3;
+    const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 5000); // 指数退避，最大5秒
+
     try {
-      const response = await fetch(endpoint);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+      const response = await fetch(endpoint, {
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      clearTimeout(timeoutId);
+
       if (response.ok) {
         const data = await response.json();
         this.notify(key, data);
@@ -112,13 +127,23 @@ class DataSyncManager {
       } else if (response.status >= 400 && response.status < 500) {
         // 客户端错误，记录警告但不抛出异常
         console.warn(`Client error ${response.status} for ${key}: ${endpoint}`);
+      } else if (response.status >= 500 && retryCount < maxRetries) {
+        // 服务器错误，重试
+        console.warn(`Server error ${response.status} for ${key}, retrying in ${retryDelay}ms...`);
+        setTimeout(() => this.syncData(key, retryCount + 1), retryDelay);
       } else {
-        // 服务器错误，记录错误
         console.error(`Server error ${response.status} for ${key}: ${endpoint}`);
       }
-    } catch (error) {
-      // 网络错误等
-      console.error(`Failed to sync ${key}:`, error);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.warn(`Request timeout for ${key}: ${endpoint}`);
+      } else if (retryCount < maxRetries) {
+        // 网络错误等，重试
+        console.warn(`Failed to sync ${key}, retrying in ${retryDelay}ms...`, error);
+        setTimeout(() => this.syncData(key, retryCount + 1), retryDelay);
+      } else {
+        console.error(`Failed to sync ${key} after ${maxRetries} retries:`, error);
+      }
     }
   }
 
@@ -136,9 +161,26 @@ class DataSyncManager {
       'media': '/api/media',
       'settings': '/api/settings',
       'analytics': '/api/analytics',
+      'health': '/api/health',
     };
 
     return endpoints[key] || null;
+  }
+
+  // 检查系统健康状态
+  async checkHealth(): Promise<boolean> {
+    try {
+      const response = await fetch('/api/health', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+      return response.ok;
+    } catch (error) {
+      console.error('Health check failed:', error);
+      return false;
+    }
   }
 
   // 手动触发数据更新

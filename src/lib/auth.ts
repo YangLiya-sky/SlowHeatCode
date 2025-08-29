@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from './prisma';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'your-secret-key';
 
 export interface AuthUser {
   id: string;
@@ -44,7 +44,7 @@ export function verifyToken(token: string): AuthUser | null {
 
 export async function createUser(email: string, username: string, password: string, name?: string) {
   const hashedPassword = await hashPassword(password);
-  
+
   return prisma.user.create({
     data: {
       email,
