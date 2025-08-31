@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
+import cloudinary from '@/lib/cloudinary';
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,11 +36,39 @@ export async function GET(request: NextRequest) {
       process.env.CLOUDINARY_API_KEY &&
       process.env.CLOUDINARY_API_SECRET;
 
+    let cloudinaryTest = null;
+
+    // 如果配置完整，测试Cloudinary连接
+    if (hasCloudinaryConfig) {
+      try {
+        console.log('Testing Cloudinary connection...');
+
+        // 测试API连接 - 获取账户信息
+        const result = await cloudinary.api.ping();
+        console.log('Cloudinary ping result:', result);
+
+        cloudinaryTest = {
+          success: true,
+          message: 'Cloudinary连接成功',
+          pingResult: result
+        };
+      } catch (error) {
+        console.error('Cloudinary test error:', error);
+        cloudinaryTest = {
+          success: false,
+          message: 'Cloudinary连接失败',
+          error: error instanceof Error ? error.message : String(error),
+          details: error instanceof Error ? error.stack : undefined
+        };
+      }
+    }
+
     return NextResponse.json({
       success: true,
       config: cloudinaryConfig,
       hasCompleteConfig: !!hasCloudinaryConfig,
-      willUseCloudinary: !!(process.env.NODE_ENV === 'production' && hasCloudinaryConfig)
+      willUseCloudinary: !!(process.env.NODE_ENV === 'production' && hasCloudinaryConfig),
+      cloudinaryTest
     });
 
   } catch (error) {

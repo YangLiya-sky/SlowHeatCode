@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
       process.env.CLOUDINARY_API_KEY &&
       process.env.CLOUDINARY_API_SECRET;
 
-    // 临时禁用Cloudinary，使用占位符方案
-    const useCloudinary = false; // 设置为 true 来重新启用Cloudinary
+    // 重新启用Cloudinary进行测试
+    const useCloudinary = true; // 设置为 false 来禁用Cloudinary
 
     if (isProduction && hasCloudinaryConfig && useCloudinary) {
       // 生产环境：使用Cloudinary
