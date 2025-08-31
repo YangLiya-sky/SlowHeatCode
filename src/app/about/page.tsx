@@ -66,12 +66,9 @@ export default function AboutPage() {
             {/* 个人信息卡片 */}
             <Box className="lg:col-span-1">
               <GlassCard className="p-8 text-center">
-                <Avatar
-                  sx={{ width: 150, height: 150 }}
-                  className="mx-auto mb-6 border-4 border-white/20"
-                  src="/api/placeholder/150/150"
-                  alt="Profile"
-                />
+                <Box className="w-40 h-40 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white text-7xl border-4 border-white/20">
+                  👨‍💻
+                </Box>
                 <Typography variant="h5" className="text-white font-bold mb-2">
                   开发者
                 </Typography>

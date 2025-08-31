@@ -59,8 +59,8 @@ export default function StaticHomePage() {
             </Grid>
             <Grid item xs={12} md={4} {...({} as any)}>
               <GlassCard className="p-8 text-center">
-                <Box className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white text-4xl font-bold">
-                  P
+                <Box className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white text-5xl">
+                  👨‍💻
                 </Box>
                 <Typography variant="h6" className="text-white font-semibold mb-2">
                   开发者

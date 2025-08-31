@@ -86,12 +86,9 @@ export default function HomePage() {
             </Box>
             <Box className="flex justify-center">
               <GlassCard className="p-8 text-center max-w-sm">
-                <Avatar
-                  sx={{ width: 120, height: 120 }}
-                  className="mx-auto mb-4 border-4 border-white/20"
-                  src="/api/placeholder/120/120"
-                  alt="Profile"
-                />
+                <Box className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white text-6xl border-4 border-white/20">
+                  👨‍💻
+                </Box>
                 <Typography variant="h6" className="text-white font-semibold mb-2">
                   开发者
                 </Typography>

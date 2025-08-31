@@ -17,7 +17,7 @@ const navItems = [
   { name: '联系我', href: '/contact', icon: ContactMail },
   { name: '归档', href: '/archive', icon: Archive },
   { name: '搜索', href: '/search', icon: Search },
-  { name: 'RSS', href: '/api/rss', icon: RssFeed, external: true },
+  { name: 'RSS', href: '/feed', icon: RssFeed },
   { name: '管理', href: '/admin', icon: AdminPanelSettings },
   { name: '登录', href: '/login', icon: Login },
 ];
