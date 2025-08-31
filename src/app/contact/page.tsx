@@ -12,21 +12,14 @@ const contactInfo = [
   {
     icon: Email,
     title: '邮箱',
-    value: 'contact@example.com',
-    link: 'mailto:contact@example.com',
+    value: '1378473519@qq.com',
+    link: 'mailto:1378473519@qq.com',
     description: '工作合作或技术交流'
-  },
-  {
-    icon: Phone,
-    title: '电话',
-    value: '+86 138 0000 0000',
-    link: 'tel:+8613800000000',
-    description: '紧急联系或面试安排'
   },
   {
     icon: LocationOn,
     title: '位置',
-    value: '中国 · 上海',
+    value: '中国 · 武汉',
     link: '',
     description: '可远程工作或现场办公'
   }
@@ -91,6 +84,7 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -103,19 +97,37 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // 模拟表单提交
-    setTimeout(() => {
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setShowSuccess(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setErrorMessage(data.error || '发送失败，请稍后重试');
+      }
+    } catch (error) {
+      console.error('发送失败:', error);
+      setErrorMessage('网络错误，请检查网络连接后重试');
+    } finally {
       setIsSubmitting(false);
-      setShowSuccess(true);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 2000);
+    }
   };
 
   return (
     <Box className="min-h-screen">
       <Navbar />
-      
+
       {/* Hero Section */}
       <Box className="relative py-20 px-4 lg:px-8">
         <Container maxWidth="lg">
@@ -135,7 +147,7 @@ export default function ContactPage() {
               <Typography variant="h4" className="text-white font-bold mb-6">
                 发送消息
               </Typography>
-              
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <TextField
@@ -157,7 +169,7 @@ export default function ContactPage() {
                       }
                     }}
                   />
-                  
+
                   <TextField
                     fullWidth
                     label="邮箱"
@@ -179,7 +191,7 @@ export default function ContactPage() {
                     }}
                   />
                 </Box>
-                
+
                 <TextField
                   fullWidth
                   label="主题"
@@ -199,7 +211,7 @@ export default function ContactPage() {
                     }
                   }}
                 />
-                
+
                 <TextField
                   fullWidth
                   label="消息内容"
@@ -221,7 +233,7 @@ export default function ContactPage() {
                     }
                   }}
                 />
-                
+
                 <GlassButton
                   type="submit"
                   glassVariant="primary"
@@ -251,7 +263,7 @@ export default function ContactPage() {
                 <Typography variant="h4" className="text-white font-bold mb-6">
                   联系方式
                 </Typography>
-                
+
                 <Box className="space-y-6">
                   {contactInfo.map((info, index) => {
                     const IconComponent = info.icon;
@@ -265,10 +277,10 @@ export default function ContactPage() {
                             {info.title}
                           </Typography>
                           {info.link ? (
-                            <Typography 
+                            <Typography
                               component="a"
                               href={info.link}
-                              variant="body1" 
+                              variant="body1"
                               className="text-indigo-400 hover:text-indigo-300 transition-colors mb-1 block"
                             >
                               {info.value}
@@ -293,7 +305,7 @@ export default function ContactPage() {
                 <Typography variant="h5" className="text-white font-bold mb-6">
                   社交媒体
                 </Typography>
-                
+
                 <Box className="grid grid-cols-2 gap-4">
                   {socialLinks.map((social, index) => {
                     const IconComponent = social.icon;
@@ -304,12 +316,11 @@ export default function ContactPage() {
                         href={social.url || undefined}
                         target={social.url ? "_blank" : undefined}
                         rel={social.url ? "noopener noreferrer" : undefined}
-                        className={`p-4 rounded-xl bg-white/5 border border-white/10 transition-all duration-300 ${
-                          social.url ? 'hover:bg-white/10 cursor-pointer' : ''
-                        }`}
+                        className={`p-4 rounded-xl bg-white/5 border border-white/10 transition-all duration-300 ${social.url ? 'hover:bg-white/10 cursor-pointer' : ''
+                          }`}
                       >
                         <Box className="flex items-center gap-3">
-                          <IconComponent 
+                          <IconComponent
                             className="text-2xl"
                             style={{ color: social.color }}
                           />
@@ -338,7 +349,7 @@ export default function ContactPage() {
           <Typography variant="h3" className="text-white font-bold text-center mb-12">
             常见问题
           </Typography>
-          
+
           <Box className="max-w-3xl mx-auto space-y-6">
             {faqs.map((faq, index) => (
               <GlassCard key={index} className="p-6 glass-hover">
@@ -363,7 +374,7 @@ export default function ContactPage() {
               快速响应承诺
             </Typography>
             <Typography variant="body1" className="text-white/80 mb-4">
-              我通常会在 24 小时内回复邮件，紧急项目可以通过电话联系。
+              我通常会在 24 小时内回复邮件，期待与您的交流合作。
             </Typography>
             <Typography variant="body2" className="text-white/60">
               工作时间：周一至周五 9:00-18:00 (GMT+8)
@@ -379,16 +390,36 @@ export default function ContactPage() {
         onClose={() => setShowSuccess(false)}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={() => setShowSuccess(false)} 
-          severity="success" 
-          sx={{ 
+        <Alert
+          onClose={() => setShowSuccess(false)}
+          severity="success"
+          sx={{
             backgroundColor: 'rgba(76, 175, 80, 0.9)',
             color: 'white',
             '& .MuiAlert-icon': { color: 'white' }
           }}
         >
           消息发送成功！我会尽快回复您。
+        </Alert>
+      </Snackbar>
+
+      {/* 错误提示 */}
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={() => setErrorMessage('')}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setErrorMessage('')}
+          severity="error"
+          sx={{
+            backgroundColor: 'rgba(244, 67, 54, 0.9)',
+            color: 'white',
+            '& .MuiAlert-icon': { color: 'white' }
+          }}
+        >
+          {errorMessage}
         </Alert>
       </Snackbar>
 

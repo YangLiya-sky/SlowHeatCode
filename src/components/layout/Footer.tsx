@@ -9,7 +9,7 @@ const socialLinks = [
   { name: 'GitHub', icon: GitHub, href: 'https://github.com', color: '#333' },
   { name: 'LinkedIn', icon: LinkedIn, href: 'https://linkedin.com', color: '#0077b5' },
   { name: 'Twitter', icon: Twitter, href: 'https://twitter.com', color: '#1da1f2' },
-  { name: 'Email', icon: Email, href: 'mailto:contact@example.com', color: '#ea4335' },
+  { name: 'Email', icon: Email, href: 'mailto:1378473519@qq.com', color: '#ea4335' },
 ];
 
 export function Footer() {
