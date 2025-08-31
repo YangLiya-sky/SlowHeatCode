@@ -14,7 +14,6 @@ import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 import { useDataSync, notifyDataChange } from '@/lib/dataSync';
 import { SyncStatusIndicator } from '@/components/providers/DataSyncProvider';
 import { useRealTimeAnalytics, useRealTimeMedia } from '@/lib/realTimeSync';
-import { notifyDataUpdate } from '@/lib/realTimeNotify';
 import { MediaGrid } from '@/components/ui/MediaGrid';
 
 // 动态导入重型组件
@@ -1971,8 +1970,6 @@ export default function AdminPage() {
                           const newValue = e.target.checked;
                           setSettings((prev: any) => ({ ...prev, enable_comments: newValue }));
                           await handleSaveSettings({ enable_comments: newValue });
-                          // 通知实时数据更新
-                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
@@ -1993,7 +1990,6 @@ export default function AdminPage() {
                           const newValue = e.target.checked;
                           setSettings((prev: any) => ({ ...prev, enable_analytics: newValue }));
                           await handleSaveSettings({ enable_analytics: newValue });
-                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
@@ -2014,7 +2010,6 @@ export default function AdminPage() {
                           const newValue = e.target.checked;
                           setSettings((prev: any) => ({ ...prev, comment_moderation: newValue }));
                           await handleSaveSettings({ comment_moderation: newValue });
-                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
@@ -2035,7 +2030,6 @@ export default function AdminPage() {
                           const newValue = e.target.checked;
                           setSettings((prev: any) => ({ ...prev, auto_backup: newValue }));
                           await handleSaveSettings({ auto_backup: newValue });
-                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
@@ -2056,7 +2050,6 @@ export default function AdminPage() {
                           const newValue = e.target.checked;
                           setSettings((prev: any) => ({ ...prev, seo_optimization: newValue }));
                           await handleSaveSettings({ seo_optimization: newValue });
-                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
@@ -2077,7 +2070,6 @@ export default function AdminPage() {
                           const newValue = e.target.checked;
                           setSettings((prev: any) => ({ ...prev, enable_media_preview: newValue }));
                           await handleSaveSettings({ enable_media_preview: newValue });
-                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
@@ -2098,7 +2090,6 @@ export default function AdminPage() {
                           const newValue = e.target.checked;
                           setSettings((prev: any) => ({ ...prev, enable_realtime_sync: newValue }));
                           await handleSaveSettings({ enable_realtime_sync: newValue });
-                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
@@ -2119,7 +2110,6 @@ export default function AdminPage() {
                           }}
                           onBlur={async () => {
                             await handleSaveSettings({ max_file_size: settings.max_file_size });
-                            await notifyDataUpdate('settings');
                           }}
                           variant="outlined"
                           size="small"
@@ -2142,7 +2132,6 @@ export default function AdminPage() {
                           }}
                           onBlur={async () => {
                             await handleSaveSettings({ allowed_file_types: settings.allowed_file_types });
-                            await notifyDataUpdate('settings');
                           }}
                           variant="outlined"
                           size="small"
