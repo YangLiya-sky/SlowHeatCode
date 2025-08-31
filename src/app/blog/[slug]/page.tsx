@@ -11,7 +11,7 @@ import Link from 'next/link';
 
 interface BlogPostPageProps {
   params: Promise<{
-    id: string;
+    slug: string;
   }>;
 }
 
@@ -27,8 +27,8 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
   const loadPost = async () => {
     try {
       setLoading(true);
-      const { id } = await params;
-      const response = await fetch(`/api/posts/${id}`);
+      const { slug } = await params;
+      const response = await fetch(`/api/posts/slug/${slug}`);
       if (response.ok) {
         const data = await response.json();
         setPost(data.post);
