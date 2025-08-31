@@ -7,6 +7,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { CommentSystem } from '@/components/blog/CommentSystem';
 import Link from 'next/link';
 
 interface ProjectPageProps {
@@ -115,13 +116,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                 />
                 <Chip
                   label={project.status}
-                  className={`border-white/20 ${
-                    project.status === 'COMPLETED' 
-                      ? 'bg-green-500/20 text-green-300' 
-                      : project.status === 'ACTIVE'
+                  className={`border-white/20 ${project.status === 'COMPLETED'
+                    ? 'bg-green-500/20 text-green-300'
+                    : project.status === 'ACTIVE'
                       ? 'bg-blue-500/20 text-blue-300'
                       : 'bg-yellow-500/20 text-yellow-300'
-                  }`}
+                    }`}
                   variant="outlined"
                 />
                 {project.featured && (
@@ -210,10 +210,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
               <Typography variant="h5" className="text-white font-bold mb-6">
                 项目详情
               </Typography>
-              <Box 
+              <Box
                 className="text-white/80 leading-relaxed"
-                dangerouslySetInnerHTML={{ 
-                  __html: project.content?.replace(/\n/g, '<br>') || '暂无详细描述' 
+                dangerouslySetInnerHTML={{
+                  __html: project.content?.replace(/\n/g, '<br>') || '暂无详细描述'
                 }}
               />
             </Box>
@@ -240,6 +240,11 @@ export default function ProjectPage({ params }: ProjectPageProps) {
               分享项目
             </GlassButton>
           </Box>
+
+          {/* 评论系统 */}
+          <Container maxWidth="lg" className="mt-12">
+            <CommentSystem postId={project.id} postType="project" />
+          </Container>
         </Container>
       </Box>
 

@@ -7,6 +7,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { CommentSystem } from '@/components/blog/CommentSystem';
 import Link from 'next/link';
 
 interface BlogPostPageProps {
@@ -236,6 +237,11 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               </GlassCard>
             </Box>
           </Box>
+
+          {/* 评论系统 */}
+          <Container maxWidth="lg" className="mt-12">
+            <CommentSystem postId={post.id} postType="post" />
+          </Container>
         </Container>
       </Box>
 

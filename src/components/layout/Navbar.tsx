@@ -16,6 +16,7 @@ const navItems = [
   { name: '联系我', href: '/contact', icon: ContactMail },
   { name: '归档', href: '/archive', icon: Archive },
   { name: '搜索', href: '/search', icon: Search },
+  { name: 'RSS', href: '/api/rss', icon: RssFeed, external: true },
   { name: '管理', href: '/admin', icon: AdminPanelSettings },
   { name: '登录', href: '/login', icon: Login },
 ];
@@ -47,10 +48,22 @@ export function Navbar() {
           const IconComponent = item.icon;
           return (
             <ListItem key={item.name} className="px-4 py-2">
-              <Link href={item.href} className="flex items-center w-full text-white/80 hover:text-white transition-colors">
-                <IconComponent className="mr-3 text-xl" />
-                <ListItemText primary={item.name} />
-              </Link>
+              {(item as any).external ? (
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center w-full text-white/80 hover:text-white transition-colors"
+                >
+                  <IconComponent className="mr-3 text-xl" />
+                  <ListItemText primary={item.name} />
+                </a>
+              ) : (
+                <Link href={item.href} className="flex items-center w-full text-white/80 hover:text-white transition-colors">
+                  <IconComponent className="mr-3 text-xl" />
+                  <ListItemText primary={item.name} />
+                </Link>
+              )}
             </ListItem>
           );
         })}
@@ -81,18 +94,31 @@ export function Navbar() {
             <Box className="hidden md:flex items-center space-x-1">
               {navItems.map((item) => {
                 const IconComponent = item.icon;
-                return (
+                const linkContent = (
+                  <Box className={cn(
+                    "flex items-center px-4 py-2 rounded-xl transition-all duration-300",
+                    "text-white/80 hover:text-white",
+                    "hover:bg-white/10 hover:backdrop-blur-md"
+                  )}>
+                    <IconComponent className="mr-2 text-lg" />
+                    <Typography variant="body2" className="font-medium">
+                      {item.name}
+                    </Typography>
+                  </Box>
+                );
+
+                return (item as any).external ? (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {linkContent}
+                  </a>
+                ) : (
                   <Link key={item.name} href={item.href}>
-                    <Box className={cn(
-                      "flex items-center px-4 py-2 rounded-xl transition-all duration-300",
-                      "text-white/80 hover:text-white",
-                      "hover:bg-white/10 hover:backdrop-blur-md"
-                    )}>
-                      <IconComponent className="mr-2 text-lg" />
-                      <Typography variant="body2" className="font-medium">
-                        {item.name}
-                      </Typography>
-                    </Box>
+                    {linkContent}
                   </Link>
                 );
               })}
