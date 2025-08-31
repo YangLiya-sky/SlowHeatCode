@@ -6,6 +6,7 @@ import { Menu as MenuIcon, Close as CloseIcon, Home, Person, Article, Work, Buil
 import Link from 'next/link';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { cn } from '@/lib/utils';
+import GlobalSearch from '@/components/layout/GlobalSearch';
 
 const navItems = [
   { name: '首页', href: '/', icon: Home },
@@ -92,7 +93,7 @@ export function Navbar() {
 
           {!isMobile && (
             <Box className="hidden md:flex items-center space-x-1">
-              {navItems.map((item) => {
+              {navItems.filter(item => item.name !== '搜索').map((item) => {
                 const IconComponent = item.icon;
                 const linkContent = (
                   <Box className={cn(
@@ -124,6 +125,9 @@ export function Navbar() {
               })}
             </Box>
           )}
+
+          {/* 全局搜索 */}
+          <GlobalSearch className="mr-2" />
 
           {isMobile && (
             <IconButton
