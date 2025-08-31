@@ -84,7 +84,10 @@ export async function POST(request: NextRequest) {
       process.env.CLOUDINARY_API_KEY &&
       process.env.CLOUDINARY_API_SECRET;
 
-    if (isProduction && hasCloudinaryConfig) {
+    // 临时禁用Cloudinary，使用占位符方案
+    const useCloudinary = false; // 设置为 true 来重新启用Cloudinary
+
+    if (isProduction && hasCloudinaryConfig && useCloudinary) {
       // 生产环境：使用Cloudinary
       try {
         console.log('Cloudinary config check:', {
@@ -173,24 +176,31 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      // 开发环境：使用本地文件系统
+      // 开发环境或Cloudinary禁用时的处理
       const timestamp = Date.now();
       const fileExtension = file.name.split('.').pop();
       filename = `${timestamp}.${fileExtension}`;
 
-      // 确保uploads目录存在
-      const uploadsDir = join(process.cwd(), 'public', 'uploads');
-      if (!existsSync(uploadsDir)) {
-        await mkdir(uploadsDir, { recursive: true });
+      if (isProduction) {
+        // 生产环境：使用占位符（不保存物理文件）
+        console.log('Production mode: Using placeholder for file:', filename);
+        fileUrl = `/api/media/placeholder/${filename}`;
+      } else {
+        // 开发环境：使用本地文件系统
+        // 确保uploads目录存在
+        const uploadsDir = join(process.cwd(), 'public', 'uploads');
+        if (!existsSync(uploadsDir)) {
+          await mkdir(uploadsDir, { recursive: true });
+        }
+
+        // 保存文件
+        const filePath = join(uploadsDir, filename);
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        await writeFile(filePath, buffer);
+        fileUrl = `/uploads/${filename}`;
       }
-
-      // 保存文件
-      const filePath = join(uploadsDir, filename);
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      await writeFile(filePath, buffer);
-      fileUrl = `/uploads/${filename}`;
     }
 
     // 保存到数据库
