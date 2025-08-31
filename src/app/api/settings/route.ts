@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { notifyDataUpdate } from '@/lib/realTimeNotify';
 
 // GET /api/settings - 获取所有设置
 export async function GET() {
@@ -98,6 +99,9 @@ export async function PUT(request: NextRequest) {
 
     await Promise.all(updatePromises);
 
+    // 通知实时数据更新
+    await notifyDataUpdate('settings');
+
     return NextResponse.json({
       success: true,
       message: '设置更新成功'
@@ -152,6 +156,9 @@ export async function POST(request: NextRequest) {
     const setting = await prisma.setting.create({
       data: { key, value: stringValue, type }
     });
+
+    // 通知实时数据更新
+    await notifyDataUpdate('settings');
 
     return NextResponse.json({
       success: true,

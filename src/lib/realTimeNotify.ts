@@ -6,7 +6,7 @@ const connections = new Set<ReadableStreamDefaultController>();
 // 广播数据到所有连接
 export function broadcastToClients(eventType: string, data: any) {
   const message = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
-  
+
   connections.forEach(controller => {
     try {
       controller.enqueue(new TextEncoder().encode(message));
@@ -127,6 +127,45 @@ async function getLatestMedia() {
   }
 }
 
+// 获取最新设置数据
+async function getLatestSettings() {
+  try {
+    const settings = await prisma.setting.findMany();
+
+    // 转换为键值对格式
+    const settingsMap = settings.reduce((acc, setting) => {
+      let value: any = setting.value;
+
+      // 根据类型转换值
+      switch (setting.type) {
+        case 'boolean':
+          value = setting.value === 'true';
+          break;
+        case 'number':
+          value = parseFloat(setting.value);
+          break;
+        case 'json':
+          try {
+            value = JSON.parse(setting.value);
+          } catch {
+            value = setting.value;
+          }
+          break;
+        default:
+          value = setting.value;
+      }
+
+      acc[setting.key] = value;
+      return acc;
+    }, {} as Record<string, any>);
+
+    return settingsMap;
+  } catch (error) {
+    console.error('Failed to get settings:', error);
+    return null;
+  }
+}
+
 // 数据更新通知函数（供其他 API 调用）
 export async function notifyDataUpdate(type: string, data?: any) {
   let eventData = data;
@@ -139,6 +178,9 @@ export async function notifyDataUpdate(type: string, data?: any) {
         break;
       case 'media':
         eventData = await getLatestMedia();
+        break;
+      case 'settings':
+        eventData = await getLatestSettings();
         break;
       default:
         eventData = { type, timestamp: new Date().toISOString() };

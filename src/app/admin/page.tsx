@@ -14,6 +14,8 @@ import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 import { useDataSync, notifyDataChange } from '@/lib/dataSync';
 import { SyncStatusIndicator } from '@/components/providers/DataSyncProvider';
 import { useRealTimeAnalytics, useRealTimeMedia } from '@/lib/realTimeSync';
+import { notifyDataUpdate } from '@/lib/realTimeNotify';
+import { MediaGrid } from '@/components/ui/MediaGrid';
 
 // 动态导入重型组件
 const FileUpload = dynamic(() => import('@/components/ui/FileUpload').then(mod => ({ default: mod.FileUpload })), {
@@ -1703,24 +1705,21 @@ export default function AdminPage() {
                   <Box className="mb-8">
                     <FileUpload
                       onUpload={handleUploadMedia}
-                      accept="image/*"
-                      maxSize={5}
+                      accept="image/*,video/*,application/pdf"
+                      maxSize={10}
+                      multiple
                     />
                   </Box>
 
-                  <Box className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {media.map((mediaItem) => (
-                      <MediaPreview
-                        key={mediaItem.id}
-                        media={mediaItem}
-                        onDelete={handleDeleteMedia}
-                        onSelect={(media) => {
-                          // 可以在这里添加选择媒体文件的逻辑
-                          console.log('Selected media:', media);
-                        }}
-                      />
-                    ))}
-                  </Box>
+                  {/* 使用新的媒体网格组件 */}
+                  <MediaGrid
+                    media={media || []}
+                    onDeleteMedia={handleDeleteMedia}
+                    onSelectMedia={(media) => {
+                      console.log('Selected media:', media);
+                    }}
+                    showRealTimeStatus={false}
+                  />
                 </GlassCard>
               )}
 
@@ -1956,6 +1955,7 @@ export default function AdminPage() {
                   </Typography>
 
                   <Box className="space-y-6">
+                    {/* 评论功能 */}
                     <Box className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
                       <Box>
                         <Typography variant="body1" className="text-white font-medium">
@@ -1967,33 +1967,38 @@ export default function AdminPage() {
                       </Box>
                       <Switch
                         checked={settings.enable_comments || false}
-                        onChange={(e) => {
-                          const newSettings = { ...settings, enable_comments: e.target.checked };
-                          setSettings(newSettings);
-                          handleSaveSettings({ enable_comments: e.target.checked });
+                        onChange={async (e) => {
+                          const newValue = e.target.checked;
+                          setSettings((prev: any) => ({ ...prev, enable_comments: newValue }));
+                          await handleSaveSettings({ enable_comments: newValue });
+                          // 通知实时数据更新
+                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
 
+                    {/* 访问统计 */}
                     <Box className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
                       <Box>
                         <Typography variant="body1" className="text-white font-medium">
                           访问统计
                         </Typography>
                         <Typography variant="body2" className="text-white/60">
-                          记录文章访问量和用户行为
+                          记录文章访问量和用户行为数据
                         </Typography>
                       </Box>
                       <Switch
                         checked={settings.enable_analytics || false}
-                        onChange={(e) => {
-                          const newSettings = { ...settings, enable_analytics: e.target.checked };
-                          setSettings(newSettings);
-                          handleSaveSettings({ enable_analytics: e.target.checked });
+                        onChange={async (e) => {
+                          const newValue = e.target.checked;
+                          setSettings((prev: any) => ({ ...prev, enable_analytics: newValue }));
+                          await handleSaveSettings({ enable_analytics: newValue });
+                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
 
+                    {/* 评论审核 */}
                     <Box className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
                       <Box>
                         <Typography variant="body1" className="text-white font-medium">
@@ -2005,14 +2010,16 @@ export default function AdminPage() {
                       </Box>
                       <Switch
                         checked={settings.comment_moderation || false}
-                        onChange={(e) => {
-                          const newSettings = { ...settings, comment_moderation: e.target.checked };
-                          setSettings(newSettings);
-                          handleSaveSettings({ comment_moderation: e.target.checked });
+                        onChange={async (e) => {
+                          const newValue = e.target.checked;
+                          setSettings((prev: any) => ({ ...prev, comment_moderation: newValue }));
+                          await handleSaveSettings({ comment_moderation: newValue });
+                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
 
+                    {/* 自动备份 */}
                     <Box className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
                       <Box>
                         <Typography variant="body1" className="text-white font-medium">
@@ -2024,14 +2031,16 @@ export default function AdminPage() {
                       </Box>
                       <Switch
                         checked={settings.auto_backup || false}
-                        onChange={(e) => {
-                          const newSettings = { ...settings, auto_backup: e.target.checked };
-                          setSettings(newSettings);
-                          handleSaveSettings({ auto_backup: e.target.checked });
+                        onChange={async (e) => {
+                          const newValue = e.target.checked;
+                          setSettings((prev: any) => ({ ...prev, auto_backup: newValue }));
+                          await handleSaveSettings({ auto_backup: newValue });
+                          await notifyDataUpdate('settings');
                         }}
                       />
                     </Box>
 
+                    {/* SEO 优化 */}
                     <Box className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
                       <Box>
                         <Typography variant="body1" className="text-white font-medium">
@@ -2043,12 +2052,113 @@ export default function AdminPage() {
                       </Box>
                       <Switch
                         checked={settings.seo_optimization || false}
-                        onChange={(e) => {
-                          const newSettings = { ...settings, seo_optimization: e.target.checked };
-                          setSettings(newSettings);
-                          handleSaveSettings({ seo_optimization: e.target.checked });
+                        onChange={async (e) => {
+                          const newValue = e.target.checked;
+                          setSettings((prev: any) => ({ ...prev, seo_optimization: newValue }));
+                          await handleSaveSettings({ seo_optimization: newValue });
+                          await notifyDataUpdate('settings');
                         }}
                       />
+                    </Box>
+
+                    {/* 媒体文件实时预览 */}
+                    <Box className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+                      <Box>
+                        <Typography variant="body1" className="text-white font-medium">
+                          媒体实时预览
+                        </Typography>
+                        <Typography variant="body2" className="text-white/60">
+                          启用媒体文件的实时预览功能
+                        </Typography>
+                      </Box>
+                      <Switch
+                        checked={settings.enable_media_preview || true}
+                        onChange={async (e) => {
+                          const newValue = e.target.checked;
+                          setSettings((prev: any) => ({ ...prev, enable_media_preview: newValue }));
+                          await handleSaveSettings({ enable_media_preview: newValue });
+                          await notifyDataUpdate('settings');
+                        }}
+                      />
+                    </Box>
+
+                    {/* 实时数据同步 */}
+                    <Box className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+                      <Box>
+                        <Typography variant="body1" className="text-white font-medium">
+                          实时数据同步
+                        </Typography>
+                        <Typography variant="body2" className="text-white/60">
+                          启用仪表板和数据分析的实时更新
+                        </Typography>
+                      </Box>
+                      <Switch
+                        checked={settings.enable_realtime_sync || true}
+                        onChange={async (e) => {
+                          const newValue = e.target.checked;
+                          setSettings((prev: any) => ({ ...prev, enable_realtime_sync: newValue }));
+                          await handleSaveSettings({ enable_realtime_sync: newValue });
+                          await notifyDataUpdate('settings');
+                        }}
+                      />
+                    </Box>
+
+                    {/* 文件上传限制 */}
+                    <Box className="p-4 rounded-xl bg-white/5 border border-white/10">
+                      <Typography variant="body1" className="text-white font-medium mb-3">
+                        文件上传设置
+                      </Typography>
+                      <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <TextField
+                          label="最大文件大小 (MB)"
+                          type="number"
+                          value={settings.max_file_size || 10}
+                          onChange={(e) => {
+                            const newValue = parseInt(e.target.value) || 10;
+                            setSettings((prev: any) => ({ ...prev, max_file_size: newValue }));
+                          }}
+                          onBlur={async () => {
+                            await handleSaveSettings({ max_file_size: settings.max_file_size });
+                            await notifyDataUpdate('settings');
+                          }}
+                          variant="outlined"
+                          size="small"
+                          InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
+                          InputProps={{ style: { color: 'white' } }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
+                              '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
+                              '&.Mui-focused fieldset': { borderColor: 'rgba(99, 102, 241, 0.8)' },
+                              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            }
+                          }}
+                        />
+                        <TextField
+                          label="允许的文件类型"
+                          value={settings.allowed_file_types || 'jpg,jpeg,png,gif,pdf,mp4,webm'}
+                          onChange={(e) => {
+                            setSettings((prev: any) => ({ ...prev, allowed_file_types: e.target.value }));
+                          }}
+                          onBlur={async () => {
+                            await handleSaveSettings({ allowed_file_types: settings.allowed_file_types });
+                            await notifyDataUpdate('settings');
+                          }}
+                          variant="outlined"
+                          size="small"
+                          placeholder="jpg,jpeg,png,gif,pdf,mp4"
+                          InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
+                          InputProps={{ style: { color: 'white' } }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
+                              '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
+                              '&.Mui-focused fieldset': { borderColor: 'rgba(99, 102, 241, 0.8)' },
+                              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            }
+                          }}
+                        />
+                      </Box>
                     </Box>
                   </Box>
                 </GlassCard>
