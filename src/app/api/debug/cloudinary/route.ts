@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       hasCloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
       hasApiKey: !!process.env.CLOUDINARY_API_KEY,
       hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
-      cloudName: process.env.CLOUDINARY_CLOUD_NAME ? 
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME ?
         process.env.CLOUDINARY_CLOUD_NAME.substring(0, 5) + '...' : 'undefined',
       nodeEnv: process.env.NODE_ENV,
       isProduction: process.env.NODE_ENV === 'production'
@@ -38,15 +38,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       config: cloudinaryConfig,
-      hasCompleteConfig: hasCloudinaryConfig,
-      willUseCloudinary: process.env.NODE_ENV === 'production' && hasCloudinaryConfig
+      hasCompleteConfig: !!hasCloudinaryConfig,
+      willUseCloudinary: !!(process.env.NODE_ENV === 'production' && hasCloudinaryConfig)
     });
 
   } catch (error) {
     return NextResponse.json(
-      { 
-        success: false, 
-        error: `诊断失败: ${error instanceof Error ? error.message : '未知错误'}` 
+      {
+        success: false,
+        error: `诊断失败: ${error instanceof Error ? error.message : '未知错误'}`
       },
       { status: 500 }
     );

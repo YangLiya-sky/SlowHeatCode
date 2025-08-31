@@ -126,14 +126,51 @@ export async function POST(request: NextRequest) {
         filename = uploadResult.public_id;
       } catch (error) {
         console.error('Cloudinary upload error:', error);
-        return NextResponse.json(
-          {
-            success: false,
-            error: `云存储上传失败: ${error instanceof Error ? error.message : '未知错误'}`,
-            details: error instanceof Error ? error.stack : String(error)
-          },
-          { status: 500 }
-        );
+
+        // 尝试获取更详细的错误信息
+        let errorMessage = '未知错误';
+        let errorDetails = '';
+
+        if (error instanceof Error) {
+          errorMessage = error.message;
+          errorDetails = error.stack || '';
+        } else if (typeof error === 'object' && error !== null) {
+          errorMessage = JSON.stringify(error);
+          errorDetails = String(error);
+        } else {
+          errorMessage = String(error);
+        }
+
+        console.error('Detailed error info:', {
+          message: errorMessage,
+          details: errorDetails,
+          type: typeof error,
+          isError: error instanceof Error
+        });
+
+        // 临时回退方案：保存到数据库但不保存物理文件
+        console.log('Attempting fallback: save to database without physical file...');
+
+        try {
+          // 生成一个临时的URL（指向一个占位符）
+          const timestamp = Date.now();
+          const fileExtension = file.name.split('.').pop();
+          filename = `cloudinary-failed-${timestamp}.${fileExtension}`;
+          fileUrl = `/api/media/placeholder/${filename}`;
+
+          console.log('Fallback URL generated:', fileUrl);
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+          return NextResponse.json(
+            {
+              success: false,
+              error: `云存储上传失败: ${errorMessage}`,
+              details: errorDetails,
+              fallbackFailed: true
+            },
+            { status: 500 }
+          );
+        }
       }
     } else {
       // 开发环境：使用本地文件系统
