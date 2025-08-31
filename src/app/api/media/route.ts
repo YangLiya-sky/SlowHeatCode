@@ -4,6 +4,7 @@ import { verifyToken } from '@/lib/auth';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import cloudinary from '@/lib/cloudinary';
 
 // GET /api/media - 获取所有媒体文件
 export async function GET() {
@@ -74,26 +75,65 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 生成唯一文件名
-    const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop();
-    const filename = `${timestamp}.${fileExtension}`;
+    let fileUrl: string;
+    let filename: string;
 
-    // 确保uploads目录存在
-    const uploadsDir = join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
+    // 检查是否在生产环境且配置了Cloudinary
+    const isProduction = process.env.NODE_ENV === 'production';
+    const hasCloudinaryConfig = process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET;
+
+    if (isProduction && hasCloudinaryConfig) {
+      // 生产环境：使用Cloudinary
+      try {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        // 上传到Cloudinary
+        const uploadResult = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            {
+              resource_type: 'image',
+              folder: 'vibe-blog',
+              public_id: `${Date.now()}-${file.name.split('.')[0]}`,
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(buffer);
+        }) as any;
+
+        fileUrl = uploadResult.secure_url;
+        filename = uploadResult.public_id;
+      } catch (error) {
+        console.error('Cloudinary upload error:', error);
+        return NextResponse.json(
+          { success: false, error: '云存储上传失败' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // 开发环境：使用本地文件系统
+      const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop();
+      filename = `${timestamp}.${fileExtension}`;
+
+      // 确保uploads目录存在
+      const uploadsDir = join(process.cwd(), 'public', 'uploads');
+      if (!existsSync(uploadsDir)) {
+        await mkdir(uploadsDir, { recursive: true });
+      }
+
+      // 保存文件
+      const filePath = join(uploadsDir, filename);
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      await writeFile(filePath, buffer);
+      fileUrl = `/uploads/${filename}`;
     }
-
-    // 保存文件
-    const filePath = join(uploadsDir, filename);
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    await writeFile(filePath, buffer);
-
-    // 生成文件URL
-    const fileUrl = `/uploads/${filename}`;
 
     // 保存到数据库
     const media = await prisma.media.create({

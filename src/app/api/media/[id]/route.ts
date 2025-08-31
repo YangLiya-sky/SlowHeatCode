@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import cloudinary from '@/lib/cloudinary';
+import { unlink } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 // DELETE /api/media/[id] - 删除媒体文件
 export async function DELETE(
@@ -51,15 +55,56 @@ export async function DELETE(
       );
     }
 
-    // 在Vercel生产环境中，只删除数据库记录
-    // 物理文件删除需要云存储服务支持
+    // 检查是否在生产环境且配置了Cloudinary
+    const isProduction = process.env.NODE_ENV === 'production';
+    const hasCloudinaryConfig = process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET;
+
+    // 删除物理文件
+    if (isProduction && hasCloudinaryConfig) {
+      // 生产环境：从Cloudinary删除
+      try {
+        // 如果filename是Cloudinary的public_id，直接删除
+        // 如果是URL，需要提取public_id
+        let publicId = media.filename;
+        if (media.url.includes('cloudinary.com')) {
+          // 从URL中提取public_id
+          const urlParts = media.url.split('/');
+          const fileWithExt = urlParts[urlParts.length - 1];
+          publicId = fileWithExt.split('.')[0];
+          // 如果有文件夹，需要包含文件夹路径
+          if (media.url.includes('/vibe-blog/')) {
+            publicId = `vibe-blog/${publicId}`;
+          }
+        }
+
+        await cloudinary.uploader.destroy(publicId);
+      } catch (error) {
+        console.error('Cloudinary delete error:', error);
+        // 即使云存储删除失败，也继续删除数据库记录
+      }
+    } else {
+      // 开发环境：删除本地文件
+      try {
+        const filePath = join(process.cwd(), 'public', 'uploads', media.filename);
+        if (existsSync(filePath)) {
+          await unlink(filePath);
+        }
+      } catch (error) {
+        console.error('Local file delete error:', error);
+        // 即使本地文件删除失败，也继续删除数据库记录
+      }
+    }
+
+    // 删除数据库记录
     await prisma.media.delete({
       where: { id }
     });
 
     return NextResponse.json({
       success: true,
-      message: '文件记录删除成功（物理文件需要在云存储中手动删除）'
+      message: '文件删除成功'
     });
   } catch (error) {
     console.error('Delete media error:', error);
