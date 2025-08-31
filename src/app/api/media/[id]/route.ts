@@ -12,7 +12,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    const token = request.cookies.get('auth-token')?.value;
     if (!token) {
       return NextResponse.json(
         { success: false, error: '未提供认证令牌' },
@@ -20,7 +20,7 @@ export async function DELETE(
       );
     }
 
-    const user = await verifyToken(token);
+    const user = verifyToken(token);
 
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(

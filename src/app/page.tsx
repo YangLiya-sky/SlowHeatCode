@@ -65,11 +65,20 @@ export default function HomePage() {
                 欢迎来到我的数字世界！
               </Typography>
               <Box className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <GlassButton glassVariant="primary" size="large">
-                  <Article className="mr-2" />
-                  查看博客
-                </GlassButton>
-                <GlassButton glassVariant="outline" size="large">
+                <Link href="/blog" passHref>
+                  <GlassButton glassVariant="primary" size="large">
+                    <Article className="mr-2" />
+                    查看博客
+                  </GlassButton>
+                </Link>
+                <GlassButton
+                  glassVariant="outline"
+                  size="large"
+                  component="a"
+                  href="https://github.com/YangLiya-sky"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <GitHub className="mr-2" />
                   GitHub
                 </GlassButton>
@@ -104,10 +113,10 @@ export default function HomePage() {
             </Box>
           </Box>
         </Container>
-      </Box>
+      </Box >
 
       {/* Features Section */}
-      <Box className="py-20 px-4 lg:px-8">
+      < Box className="py-20 px-4 lg:px-8" >
         <Container maxWidth="lg">
           <Typography variant="h2" className="text-center text-white font-bold mb-4">
             我的专长
@@ -134,10 +143,10 @@ export default function HomePage() {
             })}
           </Box>
         </Container>
-      </Box>
+      </Box >
 
       {/* Recent Posts Section */}
-      <Box className="py-20 px-4 lg:px-8">
+      < Box className="py-20 px-4 lg:px-8" >
         <Container maxWidth="lg">
           <Typography variant="h2" className="text-center text-white font-bold mb-4">
             最新文章
@@ -193,9 +202,9 @@ export default function HomePage() {
             </>
           )}
         </Container>
-      </Box>
+      </Box >
 
       <Footer />
-    </Box>
+    </Box >
   );
 }

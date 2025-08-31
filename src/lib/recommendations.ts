@@ -1,16 +1,36 @@
 import { prisma } from './prisma';
+import { Prisma } from '@prisma/client';
 
-interface Post {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt?: string;
-  categoryId?: string;
-  tags?: Array<{ tag: { id: string; name: string; slug: string } }>;
-  views: number;
-  likes: number;
-  createdAt: Date;
-}
+// 使用 Prisma 生成的类型，包含所需的关系
+type PostWithRelations = Prisma.PostGetPayload<{
+  include: {
+    category: {
+      select: {
+        id: true;
+        name: true;
+        slug: true;
+      };
+    };
+    tags: {
+      include: {
+        tag: {
+          select: {
+            id: true;
+            name: true;
+            slug: true;
+          };
+        };
+      };
+    };
+    author: {
+      select: {
+        id: true;
+        name: true;
+        username: true;
+      };
+    };
+  };
+}>;
 
 interface RecommendationScore {
   postId: string;
@@ -26,10 +46,29 @@ export class RecommendationEngine {
       const currentPost = await prisma.post.findUnique({
         where: { id: currentPostId },
         include: {
-          category: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true
+            }
+          },
           tags: {
             include: {
-              tag: true
+              tag: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true
+                }
+              }
+            }
+          },
+          author: {
+            select: {
+              id: true,
+              name: true,
+              username: true
             }
           }
         }
@@ -87,10 +126,10 @@ export class RecommendationEngine {
         .sort((a, b) => b.score - a.score)
         .slice(0, limit)
         .map(rec => {
-          const post = allPosts.find(p => p.id === rec.postId);
+          const post = allPosts.find(p => p.id === rec.postId) as any;
           return {
             ...post,
-            tags: post?.tags?.map(pt => pt.tag) || [],
+            tags: post?.tags?.map((pt: any) => pt.tag) || [],
             recommendationScore: rec.score,
             recommendationReasons: rec.reasons
           };

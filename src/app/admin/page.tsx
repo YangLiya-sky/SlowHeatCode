@@ -60,6 +60,7 @@ export default function AdminPage() {
   const [success, setSuccess] = useState('');
   const [replyingComment, setReplyingComment] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [deletingMediaIds, setDeletingMediaIds] = useState<Set<string>>(new Set());
 
   // 使用数据同步hooks
   const { data: syncedPosts, refresh: refreshPosts } = useDataSync('admin-posts');
@@ -655,22 +656,43 @@ export default function AdminPage() {
   const handleDeleteMedia = async (id: string) => {
     if (!confirm('确定要删除这个文件吗？')) return;
 
+    // 防止重复删除
+    if (deletingMediaIds.has(id)) {
+      setError('文件正在删除中，请稍候...');
+      return;
+    }
+
     try {
+      setDeletingMediaIds(prev => new Set(prev).add(id));
+
       const response = await fetch(`/api/media/${id}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
         setSuccess('文件删除成功');
-        loadMedia();
+        // 立即从本地状态中移除文件，避免重复删除
+        setMedia(prev => prev.filter(item => item.id !== id));
         // 通知前台数据变化
         notifyDataChange('media', null);
       } else {
         const data = await response.json();
-        setError(data.error || '删除文件失败');
+        if (response.status === 404) {
+          setError('文件不存在，可能已被删除');
+          // 如果文件不存在，也从本地状态中移除
+          setMedia(prev => prev.filter(item => item.id !== id));
+        } else {
+          setError(data.error || '删除文件失败');
+        }
       }
     } catch (error) {
       setError('删除文件失败');
+    } finally {
+      setDeletingMediaIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     }
   };
 
