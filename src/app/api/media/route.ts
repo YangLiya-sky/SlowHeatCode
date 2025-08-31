@@ -87,8 +87,20 @@ export async function POST(request: NextRequest) {
     if (isProduction && hasCloudinaryConfig) {
       // 生产环境：使用Cloudinary
       try {
+        console.log('Cloudinary config check:', {
+          hasCloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+          hasApiKey: !!process.env.CLOUDINARY_API_KEY,
+          hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
+          cloudName: process.env.CLOUDINARY_CLOUD_NAME?.substring(0, 5) + '...'
+        });
+
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
+
+        console.log('Starting Cloudinary upload...', {
+          fileSize: buffer.length,
+          fileName: file.name
+        });
 
         // 上传到Cloudinary
         const uploadResult = await new Promise((resolve, reject) => {
@@ -99,8 +111,13 @@ export async function POST(request: NextRequest) {
               public_id: `${Date.now()}-${file.name.split('.')[0]}`,
             },
             (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
+              if (error) {
+                console.error('Cloudinary upload stream error:', error);
+                reject(error);
+              } else {
+                console.log('Cloudinary upload success:', result?.public_id);
+                resolve(result);
+              }
             }
           ).end(buffer);
         }) as any;
@@ -110,7 +127,11 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.error('Cloudinary upload error:', error);
         return NextResponse.json(
-          { success: false, error: '云存储上传失败' },
+          {
+            success: false,
+            error: `云存储上传失败: ${error instanceof Error ? error.message : '未知错误'}`,
+            details: error instanceof Error ? error.stack : String(error)
+          },
           { status: 500 }
         );
       }
