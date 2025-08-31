@@ -90,7 +90,7 @@ export class RecommendationEngine {
           const post = allPosts.find(p => p.id === rec.postId);
           return {
             ...post,
-            tags: post?.tags.map(pt => pt.tag) || [],
+            tags: post?.tags?.map(pt => pt.tag) || [],
             recommendationScore: rec.score,
             recommendationReasons: rec.reasons
           };
@@ -117,7 +117,7 @@ export class RecommendationEngine {
       }
 
       // 2. 共同标签 (每个共同标签 +20分)
-      const postTags = post.tags?.map((pt: any) => pt.tag.id) || [];
+      const postTags = post.tags?.map((pt: any) => pt.tag?.id) || [];
       const commonTags = currentTags.filter((tagId: string) => postTags.includes(tagId));
       if (commonTags.length > 0) {
         score += commonTags.length * 20;
@@ -160,7 +160,7 @@ export class RecommendationEngine {
   private static calculateTitleSimilarity(title1: string, title2: string): number {
     const words1 = this.extractKeywords(title1);
     const words2 = this.extractKeywords(title2);
-    
+
     if (words1.length === 0 || words2.length === 0) return 0;
 
     const commonWords = words1.filter(word => words2.includes(word));
