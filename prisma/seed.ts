@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, PostStatus, ProjectStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -8,7 +8,7 @@ async function main() {
 
   // 创建管理员用户
   const hashedPassword = await bcrypt.hash('admin123', 10);
-  
+
   const admin = await prisma.user.upsert({
     where: { email: 'admin@vibe.com' },
     update: {},
@@ -116,7 +116,7 @@ Next.js 15 完全支持 React 19，包括新的并发特性和服务器组件改
 Next.js 15 是一个值得升级的版本，为开发者带来了更好的开发体验。`,
       categoryId: categories[0].id,
       authorId: admin.id,
-      status: 'PUBLISHED',
+      status: PostStatus.PUBLISHED,
       featured: true,
       publishedAt: new Date(),
     },
@@ -168,7 +168,7 @@ Next.js 15 是一个值得升级的版本，为开发者带来了更好的开发
 现代前端开发需要综合考虑多个方面，持续学习和实践是关键。`,
       categoryId: categories[0].id,
       authorId: admin.id,
-      status: 'PUBLISHED',
+      status: PostStatus.PUBLISHED,
       featured: true,
       publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1天前
     },
@@ -225,7 +225,7 @@ type EventName<T extends string> = \`on\${Capitalize<T>}\`;
 掌握 TypeScript 的高级特性可以显著提高代码质量和开发效率。`,
       categoryId: categories[2].id,
       authorId: admin.id,
-      status: 'PUBLISHED',
+      status: PostStatus.PUBLISHED,
       featured: false,
       publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2天前
     },
@@ -296,7 +296,7 @@ type EventName<T extends string> = \`on\${Capitalize<T>}\`;
       category: 'Web应用',
       githubUrl: 'https://github.com/YangLiya-sky/SlowHeatCode',
       liveUrl: 'https://vibe-blog.vercel.app',
-      status: 'COMPLETED',
+      status: ProjectStatus.COMPLETED,
       featured: true,
       startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30天前
       endDate: new Date(),
@@ -333,7 +333,7 @@ npm install @company/react-components
       technologies: 'React,TypeScript,Storybook,Jest,Rollup',
       category: '组件库',
       githubUrl: 'https://github.com/example/react-components',
-      status: 'ACTIVE',
+      status: ProjectStatus.ACTIVE,
       featured: true,
       startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60天前
       authorId: admin.id,

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 // GET /api/media - 获取所有媒体文件
 export async function GET() {
@@ -71,16 +74,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vercel无服务器环境不支持文件系统操作
-    // 建议使用云存储服务如Cloudinary、AWS S3等
-    return NextResponse.json(
-      {
-        success: false,
-        error: '文件上传功能在生产环境中需要配置云存储服务。请联系管理员配置Cloudinary或AWS S3。',
-        suggestion: '建议使用外部图片链接或配置云存储服务'
+    // 生成唯一文件名
+    const timestamp = Date.now();
+    const fileExtension = file.name.split('.').pop();
+    const filename = `${timestamp}.${fileExtension}`;
+
+    // 确保uploads目录存在
+    const uploadsDir = join(process.cwd(), 'public', 'uploads');
+    if (!existsSync(uploadsDir)) {
+      await mkdir(uploadsDir, { recursive: true });
+    }
+
+    // 保存文件
+    const filePath = join(uploadsDir, filename);
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    await writeFile(filePath, buffer);
+
+    // 生成文件URL
+    const fileUrl = `/uploads/${filename}`;
+
+    // 保存到数据库
+    const media = await prisma.media.create({
+      data: {
+        filename,
+        originalName: file.name,
+        mimeType: file.type,
+        size: file.size,
+        url: fileUrl,
+        alt: alt || file.name,
       },
-      { status: 501 }
-    );
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: '文件上传成功',
+      media,
+    });
   } catch (error) {
     console.error('Upload media error:', error);
     return NextResponse.json(

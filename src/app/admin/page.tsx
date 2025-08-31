@@ -632,20 +632,14 @@ export default function AdminPage() {
       formData.append('file', file);
       formData.append('alt', file.name);
 
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('auth-token='))
-        ?.split('=')[1];
-
       const response = await fetch('/api/media', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
         body: formData,
+        credentials: 'include', // 确保发送cookies
       });
 
       if (response.ok) {
+        const data = await response.json();
         setSuccess('文件上传成功');
         loadMedia();
       } else {
@@ -653,6 +647,7 @@ export default function AdminPage() {
         setError(data.error || '上传失败');
       }
     } catch (error) {
+      console.error('Upload error:', error);
       setError('上传失败');
     }
   };
