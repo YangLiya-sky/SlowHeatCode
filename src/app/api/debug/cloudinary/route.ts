@@ -23,18 +23,22 @@ export async function GET(request: NextRequest) {
 
     // 检查环境变量
     const cloudinaryConfig = {
+      hasCloudinaryUrl: !!process.env.CLOUDINARY_URL,
       hasCloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
       hasApiKey: !!process.env.CLOUDINARY_API_KEY,
       hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
+      cloudinaryUrl: process.env.CLOUDINARY_URL ?
+        process.env.CLOUDINARY_URL.substring(0, 20) + '...' : 'undefined',
       cloudName: process.env.CLOUDINARY_CLOUD_NAME ?
         process.env.CLOUDINARY_CLOUD_NAME.substring(0, 5) + '...' : 'undefined',
       nodeEnv: process.env.NODE_ENV,
       isProduction: process.env.NODE_ENV === 'production'
     };
 
-    const hasCloudinaryConfig = process.env.CLOUDINARY_CLOUD_NAME &&
-      process.env.CLOUDINARY_API_KEY &&
-      process.env.CLOUDINARY_API_SECRET;
+    const hasCloudinaryConfig = process.env.CLOUDINARY_URL ||
+      (process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET);
 
     let cloudinaryTest = null;
 

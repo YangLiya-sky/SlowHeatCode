@@ -80,9 +80,10 @@ export async function POST(request: NextRequest) {
 
     // 检查是否在生产环境且配置了Cloudinary
     const isProduction = process.env.NODE_ENV === 'production';
-    const hasCloudinaryConfig = process.env.CLOUDINARY_CLOUD_NAME &&
-      process.env.CLOUDINARY_API_KEY &&
-      process.env.CLOUDINARY_API_SECRET;
+    const hasCloudinaryConfig = process.env.CLOUDINARY_URL ||
+      (process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET);
 
     // 重新启用Cloudinary进行测试
     const useCloudinary = true; // 设置为 false 来禁用Cloudinary
