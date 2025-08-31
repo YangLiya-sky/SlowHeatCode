@@ -13,6 +13,7 @@ import { Footer } from '@/components/layout/Footer';
 import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 import { useDataSync, notifyDataChange } from '@/lib/dataSync';
 import { SyncStatusIndicator } from '@/components/providers/DataSyncProvider';
+import { useRealTimeAnalytics, useRealTimeMedia } from '@/lib/realTimeSync';
 
 // 动态导入重型组件
 const FileUpload = dynamic(() => import('@/components/ui/FileUpload').then(mod => ({ default: mod.FileUpload })), {
@@ -71,6 +72,23 @@ export default function AdminPage() {
   const { data: syncedUsers, refresh: refreshUsers } = useDataSync('users');
   const { data: syncedMedia, refresh: refreshMedia } = useDataSync('media');
   const { data: syncedSettings, refresh: refreshSettings } = useDataSync('settings');
+
+  // 使用实时数据同步hooks
+  const { data: realTimeAnalytics, connected: analyticsConnected } = useRealTimeAnalytics();
+  const { data: realTimeMedia, connected: mediaConnected } = useRealTimeMedia();
+
+  // 当实时数据更新时，更新本地状态
+  useEffect(() => {
+    if (realTimeAnalytics) {
+      setAnalytics(realTimeAnalytics);
+    }
+  }, [realTimeAnalytics]);
+
+  useEffect(() => {
+    if (realTimeMedia && Array.isArray(realTimeMedia)) {
+      setMedia(realTimeMedia);
+    }
+  }, [realTimeMedia]);
 
   // 自动清除消息
   useEffect(() => {
@@ -983,6 +1001,22 @@ export default function AdminPage() {
               {/* 仪表板 */}
               {activeTab === 'dashboard' && (
                 <Box className="space-y-8">
+                  {/* 实时连接状态指示器 */}
+                  <Box className="flex items-center justify-between mb-6">
+                    <Typography variant="h4" className="text-white font-bold">
+                      仪表板
+                    </Typography>
+                    <Box className="flex items-center gap-4">
+                      <Box className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm ${analyticsConnected ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+                        }`}>
+                        <div className={`w-2 h-2 rounded-full ${analyticsConnected ? 'bg-green-500' : 'bg-red-500'
+                          }`}></div>
+                        {analyticsConnected ? '实时连接' : '连接断开'}
+                      </Box>
+                      <SyncStatusIndicator />
+                    </Box>
+                  </Box>
+
                   {/* 统计卡片 */}
                   <Box className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                     {analytics && [
@@ -1255,6 +1289,19 @@ export default function AdminPage() {
               {/* 数据分析 */}
               {activeTab === 'analytics' && analytics && (
                 <Box className="space-y-8">
+                  {/* 实时连接状态 */}
+                  <Box className="flex items-center justify-between mb-6">
+                    <Typography variant="h4" className="text-white font-bold">
+                      数据分析
+                    </Typography>
+                    <Box className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm ${analyticsConnected ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+                      }`}>
+                      <div className={`w-2 h-2 rounded-full ${analyticsConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                        }`}></div>
+                      {analyticsConnected ? '实时更新中' : '数据静态'}
+                    </Box>
+                  </Box>
+
                   {/* 概览统计 */}
                   <GlassCard className="p-6">
                     <Typography variant="h5" className="text-white font-bold mb-6">
@@ -1645,6 +1692,12 @@ export default function AdminPage() {
                     <Typography variant="h5" className="text-white font-bold">
                       媒体库
                     </Typography>
+                    <Box className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm ${mediaConnected ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+                      }`}>
+                      <div className={`w-2 h-2 rounded-full ${mediaConnected ? 'bg-green-500' : 'bg-red-500'
+                        }`}></div>
+                      {mediaConnected ? '实时同步' : '同步断开'}
+                    </Box>
                   </Box>
 
                   <Box className="mb-8">

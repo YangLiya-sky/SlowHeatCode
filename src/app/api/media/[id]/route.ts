@@ -5,6 +5,7 @@ import cloudinary from '@/lib/cloudinary';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { notifyDataUpdate } from '@/lib/realTimeNotify';
 
 // DELETE /api/media/[id] - 删除媒体文件
 export async function DELETE(
@@ -102,6 +103,9 @@ export async function DELETE(
       where: { id }
     });
 
+    // 通知实时数据更新
+    await notifyDataUpdate('media');
+
     return NextResponse.json({
       success: true,
       message: '文件删除成功'
@@ -145,6 +149,9 @@ export async function PUT(
       where: { id },
       data: { alt }
     });
+
+    // 通知实时数据更新
+    await notifyDataUpdate('media');
 
     return NextResponse.json({
       success: true,

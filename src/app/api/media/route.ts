@@ -5,6 +5,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import cloudinary from '@/lib/cloudinary';
+import { notifyDataUpdate } from '@/lib/realTimeNotify';
 
 // GET /api/media - 获取所有媒体文件
 export async function GET() {
@@ -232,6 +233,9 @@ export async function POST(request: NextRequest) {
         alt: alt || file.name,
       },
     });
+
+    // 通知实时数据更新
+    await notifyDataUpdate('media');
 
     return NextResponse.json({
       success: true,
