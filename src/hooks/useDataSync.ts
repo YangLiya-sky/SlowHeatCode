@@ -1,7 +1,7 @@
 // 数据同步Hook - 管理前台与后台数据同步
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiClient } from '@/lib/api-client';
 
 interface UseDataSyncOptions {
@@ -29,10 +29,13 @@ export function useDataSync<T>(
     lastUpdated: null,
   });
 
+  const fetchDataRef = useRef(fetchFn);
+  fetchDataRef.current = fetchFn;
+
   const fetchData = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
-      const data = await fetchFn();
+      const data = await fetchDataRef.current();
       setState({
         data,
         loading: false,
@@ -46,22 +49,22 @@ export function useDataSync<T>(
         error: error instanceof Error ? error.message : 'Unknown error',
       }));
     }
-  }, [fetchFn]);
+  }, []);
 
   const refresh = useCallback(() => {
     fetchData();
-  }, [fetchData]);
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, []);
 
   useEffect(() => {
     if (autoRefresh && refreshInterval > 0) {
       const interval = setInterval(fetchData, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, refreshInterval, fetchData]);
+  }, [autoRefresh, refreshInterval]);
 
   return {
     ...state,
