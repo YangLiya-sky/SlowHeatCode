@@ -8,88 +8,29 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { useDataSync } from '@/lib/dataSync';
+import { usePosts, useCategories } from '@/hooks/useDataSync';
 import Link from 'next/link';
 
 
 export default function BlogPage() {
-  const [posts, setPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const postsPerPage = 6;
 
-  // 使用数据同步
-  const { data: syncedPosts, refresh: refreshPosts } = useDataSync('posts');
-  const { data: syncedCategories } = useDataSync('categories');
+  // 使用数据同步Hooks
+  const { data: postsData, loading, refresh: refreshPosts } = usePosts({
+    page: currentPage,
+    limit: postsPerPage,
+    category: selectedCategory || undefined,
+    status: 'PUBLISHED'
+  });
+  const { data: categoriesData } = useCategories();
 
-  useEffect(() => {
-    loadPosts();
-  }, [currentPage, selectedCategory]);
-
-  // 实时搜索功能
-  useEffect(() => {
-    const delayedSearch = setTimeout(() => {
-      if (searchTerm !== '') {
-        performSearch();
-      } else {
-        loadPosts();
-      }
-    }, 300); // 300ms延迟防抖
-
-    return () => clearTimeout(delayedSearch);
-  }, [searchTerm]);
-
-  const loadPosts = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        status: 'PUBLISHED',
-        limit: postsPerPage.toString(),
-        page: currentPage.toString(),
-      });
-
-      if (selectedCategory) params.append('category', selectedCategory);
-
-      const response = await fetch(`/api/posts?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        setPosts(data.posts);
-        setTotalPages(Math.ceil(data.total / postsPerPage));
-      }
-    } catch (error) {
-      console.error('Load posts error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const performSearch = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        status: 'PUBLISHED',
-        search: searchTerm,
-        limit: (postsPerPage * 3).toString(), // 搜索时显示更多结果
-      });
-
-      if (selectedCategory) params.append('category', selectedCategory);
-
-      const response = await fetch(`/api/posts?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        setPosts(data.posts);
-        setTotalPages(1); // 搜索结果不分页
-        setCurrentPage(1);
-      }
-    } catch (error) {
-      console.error('Search posts error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 从API数据中提取posts和categories
+  const posts = (postsData as any)?.posts || [];
+  const totalPages = Math.ceil(((postsData as any)?.total || 0) / postsPerPage);
+  const categories = (categoriesData as any)?.categories || [];
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -105,20 +46,19 @@ export default function BlogPage() {
     setCurrentPage(value);
   };
 
-  const categories = ['全部', '前端开发', '后端开发', '设计', '最佳实践'];
+  // 客户端过滤（用于搜索）
+  const filteredPosts = useMemo(() => {
+    if (!searchTerm) return posts;
 
-  // 过滤文章
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (post.excerpt && post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = selectedCategory === '全部' || selectedCategory === '' ||
-      (post.category && post.category.name === selectedCategory);
-
-    return matchesSearch && matchesCategory;
-  });
+    return posts.filter((post: any) => {
+      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (post.excerpt && post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()));
+      return matchesSearch;
+    });
+  }, [posts, searchTerm]);
 
   // 精选文章
-  const featuredPosts = posts.filter(post => post.featured);
+  const featuredPosts = posts.filter((post: any) => post.featured);
 
   return (
     <Box className="min-h-screen">
@@ -178,8 +118,8 @@ export default function BlogPage() {
                 精选文章
               </Typography>
               <Box className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {featuredPosts.map((post) => (
-                  <Link key={post.id} href={`/blog/${post.id}`}>
+                {featuredPosts.map((post: any) => (
+                  <Link key={post.id} href={`/blog/${post.slug || post.id}`}>
                     <GlassCard className="p-8 h-full glass-hover cursor-pointer">
                       <Box className="flex items-center gap-2 mb-4">
                         <Chip
@@ -245,18 +185,28 @@ export default function BlogPage() {
               分类筛选
             </Typography>
             <Box className="flex flex-wrap gap-2">
-              {categories.map((category) => {
-                const categoryName = category;
+              <Chip
+                label="全部"
+                onClick={() => handleCategoryFilter('')}
+                className={`cursor-pointer transition-all duration-300 ${selectedCategory === ''
+                  ? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-white border-0'
+                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                  }`}
+                variant={selectedCategory === '' ? 'filled' : 'outlined'}
+              />
+              {categories.map((category: any) => {
+                const categoryName = category.name || category;
+                const categorySlug = category.slug || category;
                 return (
                   <Chip
-                    key={category}
+                    key={category.id || categorySlug}
                     label={categoryName}
-                    onClick={() => handleCategoryFilter(categoryName)}
-                    className={`cursor-pointer transition-all duration-300 ${selectedCategory === categoryName
+                    onClick={() => handleCategoryFilter(categorySlug)}
+                    className={`cursor-pointer transition-all duration-300 ${selectedCategory === categorySlug
                       ? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-white border-0'
                       : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
                       }`}
-                    variant={selectedCategory === categoryName ? 'filled' : 'outlined'}
+                    variant={selectedCategory === categorySlug ? 'filled' : 'outlined'}
                   />
                 );
               })}
@@ -273,8 +223,8 @@ export default function BlogPage() {
             </Box>
           ) : (
             <Box className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {filteredPosts.map((post) => (
-                <Link key={post.id} href={`/blog/${post.id}`}>
+              {filteredPosts.map((post: any) => (
+                <Link key={post.id} href={`/blog/${post.slug || post.id}`}>
                   <GlassCard className="p-6 h-full glass-hover cursor-pointer">
                     <Box className="flex items-center gap-2 mb-3">
                       <Chip

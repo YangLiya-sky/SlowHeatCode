@@ -1,318 +1,212 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, Container, TextField, InputAdornment, Chip, Pagination } from '@mui/material';
-import { Search, CalendarToday, AccessTime, Visibility, FilterList, Clear, TrendingUp } from '@mui/icons-material';
+import { Search, CalendarToday, Visibility, FilterList, Clear, Comment, Article, Work } from '@mui/icons-material';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { apiClient } from '@/lib/api-client';
 import Link from 'next/link';
 
-// 模拟博客数据
-const blogPosts = [
-  {
-    id: 1,
-    title: '玻璃拟态设计趋势探索',
-    excerpt: '深入探讨玻璃拟态设计在现代Web开发中的应用和最佳实践，包括设计原理、实现技巧和用户体验考量...',
-    content: '玻璃拟态设计是一种现代的UI设计趋势，通过半透明效果和背景模糊来创造层次感...',
-    date: '2024-01-15',
-    readTime: '5 分钟阅读',
-    views: 1250,
-    tags: ['设计', 'CSS', 'UI/UX', '玻璃拟态'],
-    category: '前端开发',
-    author: '开发者'
-  },
-  {
-    id: 2,
-    title: 'React 18 新特性详解',
-    excerpt: '全面解析React 18的并发特性、Suspense改进和新的Hooks，以及如何在实际项目中应用这些新功能...',
-    content: 'React 18 引入了许多激动人心的新特性，包括并发渲染、自动批处理、新的Hooks等...',
-    date: '2024-01-10',
-    readTime: '8 分钟阅读',
-    views: 2100,
-    tags: ['React', 'JavaScript', '前端', 'Hooks'],
-    category: '前端开发',
-    author: '开发者'
-  },
-  {
-    id: 3,
-    title: 'TypeScript 最佳实践',
-    excerpt: '分享在大型项目中使用TypeScript的经验和技巧，包括类型设计、代码组织和性能优化...',
-    content: 'TypeScript 为JavaScript带来了静态类型检查，在大型项目中能够显著提高代码质量...',
-    date: '2024-01-05',
-    readTime: '6 分钟阅读',
-    views: 1800,
-    tags: ['TypeScript', 'JavaScript', '最佳实践', '类型安全'],
-    category: '前端开发',
-    author: '开发者'
-  },
-  {
-    id: 4,
-    title: 'Next.js 性能优化指南',
-    excerpt: '详细介绍Next.js应用的性能优化策略，包括代码分割、图片优化、缓存策略等实用技巧...',
-    content: 'Next.js 提供了许多内置的性能优化功能，包括自动代码分割、图片优化、静态生成等...',
-    date: '2023-12-28',
-    readTime: '10 分钟阅读',
-    views: 3200,
-    tags: ['Next.js', '性能优化', 'React', 'SSR'],
-    category: '前端开发',
-    author: '开发者'
-  },
-  {
-    id: 5,
-    title: '现代CSS布局技术',
-    excerpt: '探索CSS Grid、Flexbox和Container Queries等现代布局技术，以及它们在响应式设计中的应用...',
-    content: '现代CSS提供了强大的布局工具，包括Flexbox、Grid和最新的Container Queries...',
-    date: '2023-12-20',
-    readTime: '7 分钟阅读',
-    views: 1650,
-    tags: ['CSS', '布局', '响应式设计', 'Grid', 'Flexbox'],
-    category: '前端开发',
-    author: '开发者'
-  },
-  {
-    id: 6,
-    title: 'Node.js 微服务架构实践',
-    excerpt: '分享Node.js微服务架构的设计和实现经验，包括服务拆分、通信机制和部署策略...',
-    content: '微服务架构是现代应用开发的重要模式，Node.js为构建微服务提供了良好的基础...',
-    date: '2023-11-15',
-    readTime: '12 分钟阅读',
-    views: 2800,
-    tags: ['Node.js', '微服务', '后端', '架构设计'],
-    category: '后端开发',
-    author: '开发者'
-  }
-];
-
-const categories = Array.from(new Set(blogPosts.map(post => post.category)));
-const allTags = Array.from(new Set(blogPosts.flatMap(post => post.tags)));
-
-// 热门搜索词
-const popularSearches = ['React', 'TypeScript', 'CSS', '性能优化', '微服务', '设计'];
-
 export default function SearchPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any>({
+    posts: [],
+    projects: [],
+    categories: [],
+    tags: []
+  });
+  const [loading, setLoading] = useState(false);
+  const [searchType, setSearchType] = useState<'all' | 'posts' | 'projects'>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const postsPerPage = 6;
+  const resultsPerPage = 10;
 
-  // 从localStorage加载搜索历史
+  // 热门搜索词
+  const popularSearches = ['React', 'TypeScript', 'CSS', '性能优化', '微服务', '设计'];
+
+  // 执行搜索
+  const performSearch = async (query: string, type: 'all' | 'posts' | 'projects' = 'all') => {
+    if (!query.trim()) return;
+
+    setLoading(true);
+    try {
+      const response = await apiClient.search(query, type === 'all' ? undefined : type) as any;
+
+      if (response.success) {
+        setSearchResults(response.results);
+        setTotalResults(response.total);
+
+        // 添加到搜索历史
+        const newHistory = [query, ...searchHistory.filter(h => h !== query)].slice(0, 5);
+        setSearchHistory(newHistory);
+        localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 处理搜索输入
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (searchQuery.trim()) {
+      performSearch(searchQuery, searchType);
+      setCurrentPage(1);
+    }
+  };
+
+  // 处理搜索类型切换
+  const handleTypeChange = (type: 'all' | 'posts' | 'projects') => {
+    setSearchType(type);
+    if (searchQuery.trim()) {
+      performSearch(searchQuery, type);
+    }
+  };
+
+  // 快速搜索
+  const quickSearch = (term: string) => {
+    setSearchQuery(term);
+    performSearch(term, searchType);
+  };
+
+  // 清空搜索
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchResults({ posts: [], projects: [], categories: [], tags: [] });
+    setTotalResults(0);
+    setCurrentPage(1);
+  };
+
+  // 加载搜索历史
   useEffect(() => {
-    const history = localStorage.getItem('searchHistory');
-    if (history) {
-      setSearchHistory(JSON.parse(history));
+    const savedHistory = localStorage.getItem('searchHistory');
+    if (savedHistory) {
+      setSearchHistory(JSON.parse(savedHistory));
     }
   }, []);
 
-  // 保存搜索历史
-  const saveSearchHistory = (term: string) => {
-    if (term.trim() && !searchHistory.includes(term)) {
-      const newHistory = [term, ...searchHistory.slice(0, 9)]; // 保留最近10个搜索
-      setSearchHistory(newHistory);
-      localStorage.setItem('searchHistory', JSON.stringify(newHistory));
-    }
+  // 获取当前页面的结果
+  const getCurrentPageResults = () => {
+    const allResults = [
+      ...searchResults.posts.map((item: any) => ({ ...item, type: 'post' })),
+      ...searchResults.projects.map((item: any) => ({ ...item, type: 'project' })),
+      ...searchResults.categories.map((item: any) => ({ ...item, type: 'category' })),
+      ...searchResults.tags.map((item: any) => ({ ...item, type: 'tag' }))
+    ];
+
+    const startIndex = (currentPage - 1) * resultsPerPage;
+    const endIndex = startIndex + resultsPerPage;
+    return allResults.slice(startIndex, endIndex);
   };
 
-  // 搜索逻辑
-  const filteredPosts = useMemo(() => {
-    return blogPosts.filter(post => {
-      const matchesSearch = !searchTerm || 
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesCategory = !selectedCategory || post.category === selectedCategory;
-      
-      const matchesTags = selectedTags.length === 0 || 
-        selectedTags.every(tag => post.tags.includes(tag));
-      
-      return matchesSearch && matchesCategory && matchesTags;
-    });
-  }, [searchTerm, selectedCategory, selectedTags]);
-
-  // 分页
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
-  const startIndex = (currentPage - 1) * postsPerPage;
-  const currentPosts = filteredPosts.slice(startIndex, startIndex + postsPerPage);
-
-  // 处理搜索
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    setCurrentPage(1);
-    if (term.trim()) {
-      saveSearchHistory(term);
-    }
-  };
-
-  // 清除所有筛选
-  const clearAllFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('');
-    setSelectedTags([]);
-    setCurrentPage(1);
-  };
-
-  // 切换标签选择
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
-    setCurrentPage(1);
-  };
+  const currentResults = getCurrentPageResults();
+  const totalPages = Math.ceil(totalResults / resultsPerPage);
 
   return (
     <Box className="min-h-screen">
       <Navbar />
-      
+
       {/* Hero Section */}
       <Box className="relative py-20 px-4 lg:px-8">
         <Container maxWidth="lg">
           <Box className="text-center mb-16">
             <Typography variant="h2" className="text-white font-bold mb-4">
-              搜索文章
+              全站搜索
             </Typography>
-            <Typography variant="h6" className="text-white/70 max-w-2xl mx-auto mb-8">
-              在这里搜索您感兴趣的技术文章和教程
+            <Typography variant="h6" className="text-white/70 max-w-2xl mx-auto">
+              搜索文章、项目、分类和标签，快速找到您需要的内容
             </Typography>
-            
-            {/* 主搜索框 */}
-            <Box className="max-w-2xl mx-auto mb-8">
+          </Box>
+
+          {/* 搜索表单 */}
+          <GlassCard className="p-6 mb-8">
+            <form onSubmit={handleSearch} className="space-y-4">
               <TextField
                 fullWidth
-                placeholder="搜索文章标题、内容或标签..."
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="输入关键词搜索..."
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <Search className="text-white/60" />
                     </InputAdornment>
                   ),
-                  endAdornment: searchTerm && (
+                  endAdornment: searchQuery && (
                     <InputAdornment position="end">
-                      <Clear 
+                      <Clear
                         className="text-white/60 cursor-pointer hover:text-white"
-                        onClick={() => handleSearch('')}
+                        onClick={clearSearch}
                       />
                     </InputAdornment>
                   ),
-                  className: "glass text-white text-lg",
-                  style: { color: 'white', fontSize: '1.1rem' }
+                  className: "text-white"
                 }}
+                className="bg-white/5 rounded-lg"
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.3)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: 'rgba(99, 102, 241, 0.8)',
-                    },
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: 'rgba(255, 255, 255, 0.6)',
+                    '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
+                    '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.3)' },
+                    '&.Mui-focused fieldset': { borderColor: 'rgba(255,255,255,0.5)' }
                   }
                 }}
               />
-            </Box>
 
-            {/* 搜索统计 */}
-            {searchTerm && (
-              <Typography variant="body1" className="text-white/70 mb-4">
-                找到 <span className="text-indigo-400 font-semibold">{filteredPosts.length}</span> 篇相关文章
-              </Typography>
-            )}
-          </Box>
-        </Container>
-      </Box>
-
-      {/* 筛选器和快捷搜索 */}
-      <Box className="py-8 px-4 lg:px-8">
-        <Container maxWidth="lg">
-          <GlassCard className="p-6 mb-8">
-            {/* 筛选器标题 */}
-            <Box className="flex items-center justify-between mb-6">
-              <Box className="flex items-center gap-2">
-                <FilterList className="text-white" />
-                <Typography variant="h6" className="text-white font-semibold">
-                  筛选条件
-                </Typography>
-              </Box>
-              {(selectedCategory || selectedTags.length > 0 || searchTerm) && (
-                <GlassButton glassVariant="ghost" size="small" onClick={clearAllFilters}>
-                  <Clear className="mr-1" fontSize="small" />
-                  清除筛选
-                </GlassButton>
-              )}
-            </Box>
-
-            {/* 分类筛选 */}
-            <Box className="mb-6">
-              <Typography variant="body2" className="text-white/70 mb-3">
-                按分类筛选
-              </Typography>
+              {/* 搜索类型选择 */}
               <Box className="flex flex-wrap gap-2">
                 <Chip
-                  label="全部分类"
-                  onClick={() => setSelectedCategory('')}
-                  className={`cursor-pointer transition-all duration-300 ${
-                    !selectedCategory
+                  label="全部"
+                  onClick={() => handleTypeChange('all')}
+                  className={`cursor-pointer transition-all duration-300 ${searchType === 'all'
                       ? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-white border-0'
                       : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-                  }`}
-                  variant={!selectedCategory ? 'filled' : 'outlined'}
+                    }`}
+                  variant={searchType === 'all' ? 'filled' : 'outlined'}
                 />
-                {categories.map((category) => (
-                  <Chip
-                    key={category}
-                    label={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`cursor-pointer transition-all duration-300 ${
-                      selectedCategory === category
-                        ? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-white border-0'
-                        : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                <Chip
+                  label="文章"
+                  onClick={() => handleTypeChange('posts')}
+                  className={`cursor-pointer transition-all duration-300 ${searchType === 'posts'
+                      ? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-white border-0'
+                      : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
                     }`}
-                    variant={selectedCategory === category ? 'filled' : 'outlined'}
-                  />
-                ))}
-              </Box>
-            </Box>
-
-            {/* 标签筛选 */}
-            <Box className="mb-6">
-              <Typography variant="body2" className="text-white/70 mb-3">
-                按标签筛选 (可多选)
-              </Typography>
-              <Box className="flex flex-wrap gap-2">
-                {allTags.map((tag) => (
-                  <Chip
-                    key={tag}
-                    label={tag}
-                    onClick={() => toggleTag(tag)}
-                    className={`cursor-pointer transition-all duration-300 ${
-                      selectedTags.includes(tag)
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0'
-                        : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                  variant={searchType === 'posts' ? 'filled' : 'outlined'}
+                />
+                <Chip
+                  label="项目"
+                  onClick={() => handleTypeChange('projects')}
+                  className={`cursor-pointer transition-all duration-300 ${searchType === 'projects'
+                      ? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-white border-0'
+                      : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
                     }`}
-                    variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
-                  />
-                ))}
+                  variant={searchType === 'projects' ? 'filled' : 'outlined'}
+                />
               </Box>
-            </Box>
 
-            {/* 热门搜索 */}
-            {!searchTerm && (
-              <Box>
-                <Typography variant="body2" className="text-white/70 mb-3 flex items-center">
-                  <TrendingUp className="mr-1" fontSize="small" />
+              <GlassButton
+                type="submit"
+                variant="contained"
+                startIcon={<Search />}
+                className="w-full sm:w-auto"
+                disabled={!searchQuery.trim() || loading}
+              >
+                {loading ? '搜索中...' : '搜索'}
+              </GlassButton>
+            </form>
+          </GlassCard>
+
+          {/* 快速搜索和历史 */}
+          {!searchQuery && (
+            <Box className="space-y-6 mb-8">
+              {/* 热门搜索 */}
+              <GlassCard className="p-6">
+                <Typography variant="h6" className="text-white font-semibold mb-4">
                   热门搜索
                 </Typography>
                 <Box className="flex flex-wrap gap-2">
@@ -320,139 +214,175 @@ export default function SearchPage() {
                     <Chip
                       key={term}
                       label={term}
-                      onClick={() => handleSearch(term)}
-                      className="cursor-pointer bg-white/5 text-white/80 border-white/10 hover:bg-white/10 transition-all duration-300"
+                      onClick={() => quickSearch(term)}
+                      className="bg-white/10 text-white border-white/20 cursor-pointer hover:bg-white/20"
                       variant="outlined"
-                      size="small"
                     />
                   ))}
                 </Box>
-              </Box>
-            )}
+              </GlassCard>
 
-            {/* 搜索历史 */}
-            {!searchTerm && searchHistory.length > 0 && (
-              <Box className="mt-6">
-                <Typography variant="body2" className="text-white/70 mb-3">
-                  最近搜索
-                </Typography>
-                <Box className="flex flex-wrap gap-2">
-                  {searchHistory.slice(0, 5).map((term, index) => (
-                    <Chip
-                      key={index}
-                      label={term}
-                      onClick={() => handleSearch(term)}
-                      className="cursor-pointer bg-white/5 text-white/70 border-white/10 hover:bg-white/10 transition-all duration-300"
-                      variant="outlined"
-                      size="small"
-                    />
-                  ))}
-                </Box>
-              </Box>
-            )}
-          </GlassCard>
-        </Container>
-      </Box>
-
-      {/* 搜索结果 */}
-      <Box className="py-12 px-4 lg:px-8">
-        <Container maxWidth="lg">
-          {currentPosts.length > 0 ? (
-            <>
-              <Box className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                {currentPosts.map((post) => (
-                  <Link key={post.id} href={`/blog/${post.id}`}>
-                    <GlassCard className="p-6 h-full glass-hover cursor-pointer">
-                      <Box className="flex items-center gap-2 mb-3">
-                        <Chip
-                          label={post.category}
-                          size="small"
-                          className="bg-white/10 text-white border-white/20"
-                          variant="outlined"
-                        />
-                      </Box>
-                      <Typography variant="h6" className="text-white font-semibold mb-3">
-                        {post.title}
-                      </Typography>
-                      <Typography variant="body2" className="text-white/70 mb-4 leading-relaxed line-clamp-3">
-                        {post.excerpt}
-                      </Typography>
-                      <Box className="flex items-center justify-between text-sm text-white/60 mb-3">
-                        <Box className="flex items-center gap-1">
-                          <CalendarToday fontSize="small" />
-                          <span>{post.date}</span>
-                        </Box>
-                        <Box className="flex items-center gap-3">
-                          <Box className="flex items-center gap-1">
-                            <AccessTime fontSize="small" />
-                            <span>{post.readTime}</span>
-                          </Box>
-                          <Box className="flex items-center gap-1">
-                            <Visibility fontSize="small" />
-                            <span>{post.views}</span>
-                          </Box>
-                        </Box>
-                      </Box>
-                      <Box className="flex flex-wrap gap-1">
-                        {post.tags.slice(0, 3).map((tag) => (
-                          <Chip
-                            key={tag}
-                            label={tag}
-                            size="small"
-                            className={`${
-                              selectedTags.includes(tag)
-                                ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
-                                : 'bg-white/5 text-white/60 border-white/10'
-                            }`}
-                            variant="outlined"
-                          />
-                        ))}
-                      </Box>
-                    </GlassCard>
-                  </Link>
-                ))}
-              </Box>
-
-              {/* 分页 */}
-              {totalPages > 1 && (
-                <Box className="flex justify-center">
-                  <Pagination
-                    count={totalPages}
-                    page={currentPage}
-                    onChange={(_, page) => setCurrentPage(page)}
-                    sx={{
-                      '& .MuiPaginationItem-root': {
-                        color: 'white',
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        },
-                        '&.Mui-selected': {
-                          background: 'linear-gradient(135deg, #6366f1, #ec4899)',
-                          color: 'white',
-                        },
-                      },
-                    }}
-                  />
-                </Box>
+              {/* 搜索历史 */}
+              {searchHistory.length > 0 && (
+                <GlassCard className="p-6">
+                  <Typography variant="h6" className="text-white font-semibold mb-4">
+                    搜索历史
+                  </Typography>
+                  <Box className="flex flex-wrap gap-2">
+                    {searchHistory.map((term, index) => (
+                      <Chip
+                        key={index}
+                        label={term}
+                        onClick={() => quickSearch(term)}
+                        className="bg-white/5 text-white/80 border-white/10 cursor-pointer hover:bg-white/15"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Box>
+                </GlassCard>
               )}
-            </>
-          ) : (
-            <Box className="text-center py-12">
-              <Search className="text-6xl text-white/30 mb-4" />
-              <Typography variant="h5" className="text-white/70 mb-4">
-                {searchTerm ? '没有找到相关文章' : '开始搜索文章'}
-              </Typography>
-              <Typography variant="body1" className="text-white/50 mb-6">
-                {searchTerm 
-                  ? '尝试使用不同的关键词或调整筛选条件'
-                  : '在上方搜索框中输入关键词来查找文章'
-                }
-              </Typography>
-              {searchTerm && (
-                <GlassButton glassVariant="outline" onClick={clearAllFilters}>
-                  清除所有筛选条件
-                </GlassButton>
+            </Box>
+          )}
+
+          {/* 搜索结果 */}
+          {searchQuery && (
+            <Box className="space-y-6">
+              {/* 结果统计 */}
+              <Box className="flex items-center justify-between">
+                <Typography variant="h5" className="text-white font-bold">
+                  搜索结果 ({totalResults} 个结果)
+                </Typography>
+                {searchQuery && (
+                  <Typography variant="body2" className="text-white/60">
+                    搜索关键词: "{searchQuery}"
+                  </Typography>
+                )}
+              </Box>
+
+              {loading ? (
+                <Box className="text-center py-12">
+                  <Box className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></Box>
+                  <Typography variant="body1" className="text-white/70">
+                    搜索中...
+                  </Typography>
+                </Box>
+              ) : currentResults.length > 0 ? (
+                <>
+                  {/* 搜索结果列表 */}
+                  <Box className="space-y-4">
+                    {currentResults.map((result: any) => (
+                      <Link
+                        key={`${result.type}-${result.id}`}
+                        href={
+                          result.type === 'post' ? `/blog/${result.slug || result.id}` :
+                            result.type === 'project' ? `/projects/${result.slug || result.id}` :
+                              result.type === 'category' ? `/blog?category=${result.slug}` :
+                                `/blog?tag=${result.slug}`
+                        }
+                      >
+                        <GlassCard className="p-6 glass-hover cursor-pointer">
+                          <Box className="flex items-start gap-4">
+                            {/* 类型图标 */}
+                            <Box className="flex-shrink-0 mt-1">
+                              {result.type === 'post' && <Article className="text-blue-400" />}
+                              {result.type === 'project' && <Work className="text-green-400" />}
+                              {result.type === 'category' && <FilterList className="text-purple-400" />}
+                              {result.type === 'tag' && <Chip className="text-orange-400" />}
+                            </Box>
+
+                            <Box className="flex-1">
+                              <Box className="flex items-center gap-2 mb-2">
+                                <Chip
+                                  label={
+                                    result.type === 'post' ? '文章' :
+                                      result.type === 'project' ? '项目' :
+                                        result.type === 'category' ? '分类' : '标签'
+                                  }
+                                  size="small"
+                                  className="bg-white/10 text-white border-white/20"
+                                  variant="outlined"
+                                />
+                                {result.category && (
+                                  <Chip
+                                    label={result.category.name}
+                                    size="small"
+                                    className="bg-white/5 text-white/80 border-white/10"
+                                    variant="outlined"
+                                  />
+                                )}
+                              </Box>
+
+                              <Typography variant="h6" className="text-white font-semibold mb-2">
+                                {result.title || result.name}
+                              </Typography>
+
+                              <Typography variant="body2" className="text-white/70 mb-3 line-clamp-2">
+                                {result.excerpt || result.description || `${result.postCount || 0} 篇文章`}
+                              </Typography>
+
+                              {(result.type === 'post' || result.type === 'project') && (
+                                <Box className="flex items-center gap-4 text-sm text-white/60">
+                                  {result.publishedAt && (
+                                    <Box className="flex items-center gap-1">
+                                      <CalendarToday fontSize="small" />
+                                      <span>{new Date(result.publishedAt).toLocaleDateString()}</span>
+                                    </Box>
+                                  )}
+                                  {result.views !== undefined && (
+                                    <Box className="flex items-center gap-1">
+                                      <Visibility fontSize="small" />
+                                      <span>{result.views}</span>
+                                    </Box>
+                                  )}
+                                  {result._count?.comments !== undefined && (
+                                    <Box className="flex items-center gap-1">
+                                      <Comment fontSize="small" />
+                                      <span>{result._count.comments}</span>
+                                    </Box>
+                                  )}
+                                </Box>
+                              )}
+                            </Box>
+                          </Box>
+                        </GlassCard>
+                      </Link>
+                    ))}
+                  </Box>
+
+                  {/* 分页 */}
+                  {totalPages > 1 && (
+                    <Box className="flex justify-center mt-8">
+                      <Pagination
+                        count={totalPages}
+                        page={currentPage}
+                        onChange={(_, page) => setCurrentPage(page)}
+                        className="pagination-glass"
+                        sx={{
+                          '& .MuiPaginationItem-root': {
+                            color: 'white',
+                            borderColor: 'rgba(255,255,255,0.2)',
+                            '&:hover': {
+                              backgroundColor: 'rgba(255,255,255,0.1)',
+                            },
+                            '&.Mui-selected': {
+                              backgroundColor: 'rgba(255,255,255,0.2)',
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  )}
+                </>
+              ) : (
+                <Box className="text-center py-12">
+                  <Search className="text-white/30 mb-4" style={{ fontSize: 64 }} />
+                  <Typography variant="h6" className="text-white/70 mb-2">
+                    未找到相关结果
+                  </Typography>
+                  <Typography variant="body2" className="text-white/50">
+                    尝试使用不同的关键词或检查拼写
+                  </Typography>
+                </Box>
               )}
             </Box>
           )}

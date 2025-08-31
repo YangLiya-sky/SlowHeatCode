@@ -156,7 +156,7 @@ export default function StaticHomePage() {
                       <span>{Math.ceil(post.content.length / 500)} 分钟阅读</span>
                     </Box>
                     <Box className="flex flex-wrap gap-2">
-                      {post.tags.slice(0, 2).map((tag) => (
+                      {post.tags.slice(0, 2).map((tag: any) => (
                         <Chip
                           key={tag.id}
                           label={tag.name}

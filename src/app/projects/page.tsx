@@ -3,44 +3,29 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Container, Chip, IconButton } from '@mui/material';
 import { GitHub, Launch, Star } from '@mui/icons-material';
+import Link from 'next/link';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { useDataSync } from '@/lib/dataSync';
+import { useProjects } from '@/hooks/useDataSync';
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('全部');
   const [selectedStatus, setSelectedStatus] = useState('全部');
 
-  // 使用数据同步
-  const { data: syncedProjects } = useDataSync('projects');
+  // 使用数据同步Hook
+  const { data: projectsData, loading } = useProjects({
+    limit: 20
+  });
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  const loadProjects = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/projects?limit=20');
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data.projects || []);
-      }
-    } catch (error) {
-      console.error('Load projects error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 从API数据中提取projects
+  const projects = (projectsData as any)?.projects || [];
 
   const categories = ['全部', 'Web应用', '移动应用', 'AI/ML', '开源工具'];
-  const statusOptions = ['全部', 'COMPLETED', 'ACTIVE', 'DRAFT'];
+  const statusOptions = ['全部', 'COMPLETED', 'ACTIVE', 'PLANNING'];
 
-  const filteredProjects = projects.filter(project => {
+  const filteredProjects = projects.filter((project: any) => {
     const categoryMatch = selectedCategory === '全部' || project.category === selectedCategory;
     const statusMatch = selectedStatus === '全部' || project.status === selectedStatus;
     return categoryMatch && statusMatch;
@@ -101,80 +86,81 @@ export default function ProjectsPage() {
             </Box>
           ) : (
             <Box className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProjects.map((project) => (
-                <GlassCard key={project.id} className="p-6 h-full glass-hover">
-                  <Box className="flex items-center justify-between mb-4">
-                    <Chip
-                      label={project.status === 'COMPLETED' ? '已完成' : project.status === 'ACTIVE' ? '进行中' : '草稿'}
-                      size="small"
-                      className={`${
-                        project.status === 'COMPLETED' ? 'bg-green-500/20 text-green-400' :
-                        project.status === 'ACTIVE' ? 'bg-blue-500/20 text-blue-400' :
-                        'bg-gray-500/20 text-gray-400'
-                      } border-0`}
-                    />
-                    {project.featured && (
-                      <Star className="text-yellow-400" fontSize="small" />
+              {filteredProjects.map((project: any) => (
+                <Link key={project.id} href={`/projects/${project.slug || project.id}`}>
+                  <GlassCard className="p-6 h-full glass-hover cursor-pointer">
+                    <Box className="flex items-center justify-between mb-4">
+                      <Chip
+                        label={project.status === 'COMPLETED' ? '已完成' : project.status === 'ACTIVE' ? '进行中' : '草稿'}
+                        size="small"
+                        className={`${project.status === 'COMPLETED' ? 'bg-green-500/20 text-green-400' :
+                          project.status === 'ACTIVE' ? 'bg-blue-500/20 text-blue-400' :
+                            'bg-gray-500/20 text-gray-400'
+                          } border-0`}
+                      />
+                      {project.featured && (
+                        <Star className="text-yellow-400" fontSize="small" />
+                      )}
+                    </Box>
+
+                    <Typography variant="h6" className="text-white font-semibold mb-3">
+                      {project.title}
+                    </Typography>
+
+                    <Typography variant="body2" className="text-white/70 mb-4 line-clamp-3">
+                      {project.description}
+                    </Typography>
+
+                    {/* 技术栈 */}
+                    {project.technologies && (
+                      <Box className="flex flex-wrap gap-2 mb-4">
+                        {project.technologies.split(',').map((tech: string, index: number) => (
+                          <Chip
+                            key={index}
+                            label={tech.trim()}
+                            size="small"
+                            className="bg-white/10 text-white/80 border-white/20"
+                            variant="outlined"
+                          />
+                        ))}
+                      </Box>
                     )}
-                  </Box>
 
-                  <Typography variant="h6" className="text-white font-semibold mb-3">
-                    {project.title}
-                  </Typography>
-
-                  <Typography variant="body2" className="text-white/70 mb-4 line-clamp-3">
-                    {project.description}
-                  </Typography>
-
-                  {/* 技术栈 */}
-                  {project.technologies && (
-                    <Box className="flex flex-wrap gap-2 mb-4">
-                      {project.technologies.split(',').map((tech: string, index: number) => (
-                        <Chip
-                          key={index}
-                          label={tech.trim()}
+                    {/* 项目链接 */}
+                    <Box className="flex items-center gap-2 mt-auto">
+                      {project.githubUrl && (
+                        <IconButton
+                          component="a"
+                          href={project.githubUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-white/70 hover:text-white"
                           size="small"
-                          className="bg-white/10 text-white/80 border-white/20"
-                          variant="outlined"
-                        />
-                      ))}
+                        >
+                          <GitHub fontSize="small" />
+                        </IconButton>
+                      )}
+                      {project.liveUrl && (
+                        <IconButton
+                          component="a"
+                          href={project.liveUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-white/70 hover:text-white"
+                          size="small"
+                        >
+                          <Launch fontSize="small" />
+                        </IconButton>
+                      )}
+                      <Box className="flex items-center gap-1 ml-auto text-white/60">
+                        <Star fontSize="small" />
+                        <Typography variant="caption">
+                          {project.views || 0}
+                        </Typography>
+                      </Box>
                     </Box>
-                  )}
-
-                  {/* 项目链接 */}
-                  <Box className="flex items-center gap-2 mt-auto">
-                    {project.githubUrl && (
-                      <IconButton
-                        component="a"
-                        href={project.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-white/70 hover:text-white"
-                        size="small"
-                      >
-                        <GitHub fontSize="small" />
-                      </IconButton>
-                    )}
-                    {project.liveUrl && (
-                      <IconButton
-                        component="a"
-                        href={project.liveUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-white/70 hover:text-white"
-                        size="small"
-                      >
-                        <Launch fontSize="small" />
-                      </IconButton>
-                    )}
-                    <Box className="flex items-center gap-1 ml-auto text-white/60">
-                      <Star fontSize="small" />
-                      <Typography variant="caption">
-                        {project.views || 0}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </GlassCard>
+                  </GlassCard>
+                </Link>
               ))}
             </Box>
           )}

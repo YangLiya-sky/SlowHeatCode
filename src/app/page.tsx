@@ -7,7 +7,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { useDataSync } from '@/lib/dataSync';
+import { useFeaturedPosts, useFeaturedProjects, useRecentPosts } from '@/hooks/useDataSync';
 import Link from 'next/link';
 
 const skills = [
@@ -40,35 +40,10 @@ const features = [
 ];
 
 export default function HomePage() {
-  const [recentPosts, setRecentPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // 使用数据同步
-  const { data: syncedPosts } = useDataSync('posts');
-
-  useEffect(() => {
-    loadRecentPosts();
-  }, []);
-
-  const loadRecentPosts = async () => {
-    try {
-      const response = await fetch('/api/posts?status=PUBLISHED&limit=3');
-      if (response.ok) {
-        const data = await response.json();
-        setRecentPosts(data.posts);
-
-        // 预加载博客页面数据
-        setTimeout(() => {
-          fetch('/api/posts?status=PUBLISHED&limit=10').catch(() => { });
-          fetch('/api/categories').catch(() => { });
-        }, 1000);
-      }
-    } catch (error) {
-      console.error('Load recent posts error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 使用数据同步Hooks
+  const { data: recentPosts, loading: postsLoading } = useRecentPosts(3);
+  const { data: featuredPosts } = useFeaturedPosts();
+  const { data: featuredProjects } = useFeaturedProjects();
 
   return (
     <Box className="min-h-screen">
@@ -170,7 +145,7 @@ export default function HomePage() {
           <Typography variant="h6" className="text-center text-white/70 mb-12">
             分享技术见解和开发经验
           </Typography>
-          {loading ? (
+          {postsLoading ? (
             <Box className="text-center py-12">
               <Box className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></Box>
               <Typography variant="body1" className="text-white/70">
@@ -180,8 +155,8 @@ export default function HomePage() {
           ) : (
             <>
               <Box className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {recentPosts.map((post) => (
-                  <Link key={post.id} href={`/blog/${post.id}`}>
+                {((recentPosts as any)?.posts || recentPosts || []).map((post: any) => (
+                  <Link key={post.id} href={`/blog/${post.slug || post.id}`}>
                     <GlassCard className="p-6 h-full glass-hover cursor-pointer">
                       <Typography variant="h6" className="text-white font-semibold mb-3">
                         {post.title}
@@ -194,7 +169,7 @@ export default function HomePage() {
                         <span>{Math.ceil((post.content?.length || 0) / 500)} 分钟阅读</span>
                       </Box>
                       <Box className="flex flex-wrap gap-1">
-                        {post.tags?.slice(0, 3).map((tag: any) => (
+                        {(post.tags || []).slice(0, 3).map((tag: any) => (
                           <Chip
                             key={tag.id || tag.name || tag}
                             label={typeof tag === 'object' ? (tag.tag?.name || tag.name) : tag}
