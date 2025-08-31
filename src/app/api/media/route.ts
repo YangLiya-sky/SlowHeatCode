@@ -107,22 +107,39 @@ export async function POST(request: NextRequest) {
 
         // 上传到Cloudinary
         const uploadResult = await new Promise((resolve, reject) => {
-          cloudinary.uploader.upload_stream(
+          const uploadStream = cloudinary.uploader.upload_stream(
             {
               resource_type: 'image',
               folder: 'vibe-blog',
               public_id: `${Date.now()}-${file.name.split('.')[0]}`,
+              overwrite: true,
+              invalidate: true,
+              transformation: [
+                { quality: 'auto' },
+                { fetch_format: 'auto' }
+              ]
             },
             (error, result) => {
               if (error) {
-                console.error('Cloudinary upload stream error:', error);
+                console.error('Cloudinary upload stream error:', {
+                  message: error.message,
+                  name: error.name,
+                  http_code: error.http_code,
+                  error: error
+                });
                 reject(error);
               } else {
-                console.log('Cloudinary upload success:', result?.public_id);
+                console.log('Cloudinary upload success:', {
+                  public_id: result?.public_id,
+                  secure_url: result?.secure_url,
+                  bytes: result?.bytes
+                });
                 resolve(result);
               }
             }
-          ).end(buffer);
+          );
+
+          uploadStream.end(buffer);
         }) as any;
 
         fileUrl = uploadResult.secure_url;
